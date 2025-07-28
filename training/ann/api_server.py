@@ -7,6 +7,8 @@ import os
 import json
 from typing import List, Dict, Any, Optional, Union
 import uvicorn
+import threading  # Background server thread
+import queue  # For passing states to the visualiser
 
 # Import our model and dataset classes
 import sys
@@ -194,6 +196,82 @@ def convert_unity_states_to_features(states: List[UnityState]) -> List[float]:
     
     return all_features
 
+# ---------------------------------------------------------------------------
+# Live visualiser for incoming UnityState data
+# ---------------------------------------------------------------------------
+
+# Queue that receives UnityState objects from predict_unity calls.
+STATE_QUEUE: "queue.Queue[UnityState]" = queue.Queue(maxsize=10)
+
+
+def _unity_state_plotter():
+    """Blocks on STATE_QUEUE and visualises the latest UnityState in real time.
+
+    Must run on *main thread* so that Matplotlib’s GUI backend can create
+    windows safely on macOS.
+    """
+
+    import matplotlib.pyplot as plt
+    import math
+    import time
+
+    plt.ion()
+    fig, ax = plt.subplots(figsize=(6, 6))
+
+    last_state: Optional[UnityState] = None
+
+    while True:
+        # Pull the most recent state available (non-blocking drain of queue)
+        try:
+            while True:  # empty the queue, keep the latest
+                last_state = STATE_QUEUE.get_nowait()
+        except queue.Empty:
+            pass
+
+        if last_state is not None:
+            # Extract information
+            a_pos = last_state.agentPosition
+            t_pos = last_state.targetPosition
+            a_fwd = last_state.agentForward
+            t_fwd = last_state.targetForward
+            health = last_state.health * 100  # back to percentage
+            weapon = last_state.weapon
+
+            # Convert back from Unity-scaled to metres for nicer plotting
+            ax_x = a_pos['x'] 
+            az_z = a_pos['z'] 
+            tx = t_pos['x'] 
+            tz = t_pos['z'] 
+
+            ax.clear()
+            ax.set_xlim(-0.2, 0.2)
+            ax.set_ylim(-0.2, 0.2)
+            ax.set_xlabel("X (m)")
+            ax.set_ylabel("Z (m)")
+            ax.set_title("Incoming UnityState Visualisation")
+
+            # Agent visuals
+            ax.scatter(0, 0, c="blue", label="Agent")
+            ax.arrow(0, 0, a_fwd['x'], a_fwd['z'], head_width=0.1, fc="blue", ec="blue")
+            ax.text(0.3, 0.1, f"Pos: ({0.00:.2f}, {0.00:.2f})", color="blue")
+
+            # Target visuals
+            if tx != 0 or tz != 0:
+                ax.scatter(tx - ax_x, tz - az_z, c="red", label="Target")
+                ax.arrow(tx - ax_x, tz - az_z, t_fwd['x'], t_fwd['z'], head_width=0.1, fc="red", ec="red")
+                ax.text(tx - ax_x + 0.3, tz - az_z + 0.1, f"Pos: ({(tx - ax_x):.2f}, {(tz - az_z):.2f})", color="red")
+
+            ax.legend(loc="upper right")
+
+        plt.pause(0.05)  # ~20 FPS visual refresh
+
+        # Sleep a bit to reduce CPU if nothing to draw
+        if last_state is None:
+            time.sleep(0.05)
+# ---------------------------------------------------------------------------
+# End of visualiser definitions
+# ---------------------------------------------------------------------------
+
 @app.on_event("startup")
 async def startup_event():
     """Load all available models on startup."""
@@ -209,6 +287,10 @@ async def startup_event():
             print(f"Loaded model for {task}")
         except Exception as e:
             print(f"Could not load model for {task}: {e}")
+
+    # (Removed automatic simulator start here – simulator will now be executed
+    # in the main thread inside the `__main__` guard to keep all GUI actions on
+    # the main thread and avoid macOS NSWindow exceptions.)
 
 @app.get("/", response_model=HealthResponse)
 async def root():
@@ -256,14 +338,11 @@ async def list_models():
 async def predict(request: dict):
     """Make a prediction - handles both single predictions and Unity format."""
     # Check if this is a Unity request by looking for 'states' field
-    if 'states' in request:
-        # Convert to UnityStatePayload
-        unity_request = UnityStatePayload(**request)
-        return await predict_unity(unity_request)
-    else:
-        # Convert to PredictionRequest
-        single_request = PredictionRequest(**request)
-        return await predict_single(single_request)
+
+    # Convert to UnityStatePayload
+    unity_request = UnityStatePayload(**request)
+    return await predict_unity(unity_request)
+
 
 @app.post("/predict/single", response_model=PredictionResponse)
 async def predict_single(request: PredictionRequest):
@@ -529,6 +608,20 @@ async def predict_unity(request: UnityStatePayload):
         #         predictions[3] = attack_prob
         
         print(f"Final predictions: {predictions}")
+
+        # Enqueue the newest state for visualisation (use the last frame)
+        try:
+            STATE_QUEUE.put_nowait(request.states[-1])
+        except queue.Full:
+            # Remove oldest and insert again to keep queue fresh
+            try:
+                STATE_QUEUE.get_nowait()
+            except queue.Empty:
+                pass
+            try:
+                STATE_QUEUE.put_nowait(request.states[-1])
+            except queue.Full:
+                pass
         return UnityAPIResponse(predictions=predictions)
         
     except Exception as e:
@@ -536,4 +629,23 @@ async def predict_unity(request: UnityStatePayload):
         raise HTTPException(status_code=500, detail=f"Unity prediction error: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    """Run uvicorn in a background thread, then launch the live visualiser on the
+    main thread so that all matplotlib GUI operations occur in the main thread
+    (required on macOS)."""
+
+    import time
+
+    def _run_uvicorn():
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    # Start server in a daemon thread so it exits when main thread ends.
+    server_thread = threading.Thread(target=_run_uvicorn, daemon=True)
+    server_thread.start()
+
+    # Small delay to ensure the server is listening before simulator begins.
+    time.sleep(2)
+
+    print("Uvicorn server running in background thread (http://0.0.0.0:8000).\n"
+          "Launching Unity state visualiser on main thread ...")
+
+    _unity_state_plotter() 
