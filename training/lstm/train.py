@@ -501,7 +501,7 @@ def main():
     
     # Data arguments
     parser.add_argument('--data_dir', type=str, 
-                        default='/Users/vaibhavmishra/Desktop/Desktop/btx-game-aicode/clash_squad_partitioned_chunked',
+                        default='/Users/vaibhavmishra/Desktop/clash_squad_partitioned_features_chunked',
                         help='Path to dataset directory')
     parser.add_argument('--batch_size', type=int, default=256, help='Batch size')
     parser.add_argument('--num_workers', type=int, default=4, help='Number of data workers')
@@ -526,7 +526,7 @@ def main():
                         choices=['relu', 'gelu', 'tanh'], help='Activation function')
     
     # Training arguments
-    parser.add_argument('--num_epochs', type=int, default=200, help='Number of epochs')
+    parser.add_argument('--num_epochs', type=int, default=10, help='Number of epochs')
     parser.add_argument('--learning_rate', type=float, default=1e-3, help='Learning rate')
     parser.add_argument('--optimizer', type=str, default='adamw', 
                         choices=['adam', 'adamw', 'sgd'], help='Optimizer')
@@ -552,7 +552,7 @@ def main():
     parser.add_argument('--log_interval', type=int, default=10, help='Logging interval')
     
     # Device
-    parser.add_argument('--device', type=str, default='auto', 
+    parser.add_argument('--device', type=str, default='mps', 
                         choices=['auto', 'mps', 'cuda', 'cpu'], 
                         help='Device to use (auto will choose MPS > CUDA > CPU)')
     

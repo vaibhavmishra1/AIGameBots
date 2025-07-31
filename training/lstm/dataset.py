@@ -98,7 +98,7 @@ class AgentDataset(Dataset):
         
         for file_path in sample_files:
             features = np.load(file_path)
-            action_file = file_path.replace("/features/", "/actions/").replace("_features_", "_actions_")
+            action_file = file_path
             actions = np.load(action_file)
             
             features_list.append(features)
@@ -146,7 +146,7 @@ class AgentDataset(Dataset):
         features = np.load(feature_file)
         
         # Load corresponding actions
-        action_file = feature_file.replace("/features/", "/actions/").replace("_features_", "_actions_")
+        action_file = feature_file
         actions = np.load(action_file)
         
         # Select only the action indices we care about
