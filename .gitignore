@@ -11,3 +11,6 @@
 **.html
 **.png
 **.events.**
+**.log
+**.DS_STORE
+**.pyc
