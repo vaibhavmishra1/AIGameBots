@@ -64,10 +64,9 @@ def prepare_dataset(data):
     for sample in data:
         game_id = sample["game_id"]
         for agent in sample["agents_data"]:
-            if agent["isBot"] == False:
-                key = f"{game_id}_{agent['agent_id']}"
-                game_agents[key].append(agent)
-    
+            key = f"{game_id}_{agent['agent_id']}"
+            game_agents[key].append(agent)
+
     return game_agents
 
 
@@ -85,9 +84,8 @@ def convert_numpy(obj):
 # Define the folder path
 import os
 
-folder_path = "/Users/vaibhavmishra/Desktop/btx-game-aicode/clash_squad/"
+folder_path = "/Users/vaibhavmishra/Downloads/clash_squad/"
 subfolders = [f.path for f in os.scandir(folder_path) if f.is_dir()]
-print("Subfolders:", subfolders)
 
 # List to store complete paths of .log files
 from tqdm import tqdm
@@ -115,18 +113,21 @@ for game_folder in tqdm(subfolders, desc="Processing game folders"):
             
         except Exception as e:
             pass
-
+        finally:
+            try:
+                os.remove(log_file)
+                # print(f"Removed {log_file}")
+            except Exception:
+                pass
+        
     # Filter out JSON objects with round_number = 0
     game_json_objects = [obj for obj in game_json_objects if obj.get('round_number', 0) != 0]
 
     dataset = prepare_dataset(game_json_objects)
 
     for key in dataset.keys():
-        break
-
-    for key in dataset.keys():
         agent_timeline = dataset[key]
-        filename = f"/Users/vaibhavmishra/Desktop/btx-game-aicode/clash_squad_agent_partition/{key}.json"
+        filename = f"/Users/vaibhavmishra/Desktop/clash_squad_agent_partition/{key}.json"
         with open(filename, "w") as f:
             json.dump(agent_timeline, f, default=convert_numpy)
     
