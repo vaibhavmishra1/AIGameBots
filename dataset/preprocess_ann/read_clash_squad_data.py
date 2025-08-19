@@ -135,7 +135,3 @@ for game_folder in tqdm(subfolders, desc="Processing game folders"):
     del dataset
     import gc
     gc.collect()
-    
-    
-
-
