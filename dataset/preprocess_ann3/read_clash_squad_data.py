@@ -187,10 +187,51 @@ def store_features(f, game_json_objects, game_id):
             isbot = 0 if agent_dict['isBot'] == False else 1 #41
             istargetbot = 0 if agent_dict['isTargetBot'] == False else 1 #42
 
-            feature_vec = [game_time, agent_id, target_id, team_index, pos_x, pos_y, pos_z, rot, forward_x, forward_y, forward_z, target_pos_x, target_pos_y, target_pos_z,
-                           target_rot, target_forward_x, target_forward_y, target_forward_z, distance, dir_to_target_x, dir_to_target_y, dir_to_target_z,  
-                           dot_product, weapon, cross_x, cross_y, cross_z, health, isbot, istargetbot, move_direction_x, move_direction_y,  lookRotationDelta_x, lookRotationDelta_y, attack, reload, thrust,
-                           crouch,  sprint, Grapple, slide, revive, addtobag]
+            feature_vec = [
+                game_time,           # 0
+                agent_id,            # 1
+                target_id,           # 2
+                team_index,          # 3
+                pos_x,               # 4
+                pos_y,               # 5
+                pos_z,               # 6
+                rot,                 # 7
+                forward_x,           # 8
+                forward_y,           # 9
+                forward_z,           # 10
+                target_pos_x,        # 11
+                target_pos_y,        # 12
+                target_pos_z,        # 13
+                target_rot,          # 14
+                target_forward_x,    # 15
+                target_forward_y,    # 16
+                target_forward_z,    # 17
+                distance,            # 18
+                dir_to_target_x,     # 19
+                dir_to_target_y,     # 20
+                dir_to_target_z,     # 21
+                dot_product,         # 22
+                weapon,              # 23
+                cross_x,             # 24
+                cross_y,             # 25
+                cross_z,             # 26
+                health,              # 27
+                isbot,               # 28
+                istargetbot,         # 29
+                move_direction_x,    # 30
+                move_direction_y,    # 31
+                lookRotationDelta_x, # 32
+                lookRotationDelta_y, # 33
+                attack,              # 34
+                reload,              # 35
+                thrust,              # 36
+                crouch,              # 37
+                sprint,              # 38
+                Grapple,             # 39
+                slide,               # 40
+                revive,              # 41
+                addtobag             # 42
+            ]
             return np.array(feature_vec)
 
         agent_id_to_index = None
