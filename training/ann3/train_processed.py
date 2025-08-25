@@ -369,7 +369,7 @@ python3 train_processed.py \
  python3 train_processed.py \
   --h5_path "/Users/vaibhav/Desktop/processed_game_logs.h5" \
   --overfit 10000 --epochs 100 --batch_size 64 \
-  --d_model 256 --agent_layers 8 --time_layers 8 \
+  --d_model 256 --agent_layers 4 --time_layers 4 \
   --agent_heads 8 --time_heads 8 \
-  --lr 2e-4 --num_workers 8
+  --lr 1e-4 --num_workers 8
 """
