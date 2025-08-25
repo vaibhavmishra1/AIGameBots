@@ -94,9 +94,10 @@ def create_loaders(
     return train_loader, val_loader, total
 
 
-def train_one_epoch(model, loader, optimizer, device) -> float:
+def train_one_epoch(model, loader, optimizer, device, loss_type: str = "mse", huber_delta: float = 0.1, weight_alpha: float = 0.0, weight_beta: float = 0.3) -> float:
     model.train()
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss(reduction="none")
+    huber = nn.SmoothL1Loss(reduction="none", beta=huber_delta)
     total_loss = 0.0
     total_count = 0
     for x, y in tqdm(loader, desc="Train", leave=False):
@@ -106,7 +107,29 @@ def train_one_epoch(model, loader, optimizer, device) -> float:
         optimizer.zero_grad(set_to_none=True)
         pred = model(x)
         # Exclude rotation from loss for now (use only first two components)
-        loss = criterion(pred[:, :2], y[:, :2])
+        if loss_type == "mse":
+            per_elem = criterion(pred[:, :2], y[:, :2])  # (B,2)
+        elif loss_type == "l1":
+            per_elem = (pred[:, :2] - y[:, :2]).abs()
+        else:  # huber / smooth L1
+            per_elem = huber(pred[:, :2], y[:, :2])
+
+        per_sample = per_elem.mean(dim=1)  # (B,)
+
+        # Base weights = 1.0
+        weights = torch.ones_like(per_sample)
+
+        # Downweight cases where delta_x or delta_y is exactly/near zero
+        eps = 1e-8
+        zero_mask = (y[:, 0].abs() <= eps) | (y[:, 1].abs() <= eps)
+        weights = torch.where(zero_mask, torch.full_like(per_sample, 0.001), weights)
+
+        # Movement magnitude weighting to combat mean-collapse
+        if weight_alpha > 0.0:
+            mag = torch.linalg.vector_norm(y[:, :2], ord=2, dim=1)  # (B,)
+            weights = weights * (1.0 + weight_alpha * torch.clamp(mag / max(weight_beta, 1e-6), max=1.0))
+
+        loss = (per_sample * weights).mean()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
@@ -119,9 +142,10 @@ def train_one_epoch(model, loader, optimizer, device) -> float:
 
 
 @torch.no_grad()
-def evaluate(model, loader, device) -> float:
+def evaluate(model, loader, device, loss_type: str = "mse", huber_delta: float = 0.1, weight_alpha: float = 0.0, weight_beta: float = 0.3) -> float:
     model.eval()
-    criterion = nn.MSELoss()
+    criterion = nn.MSELoss(reduction="none")
+    huber = nn.SmoothL1Loss(reduction="none", beta=huber_delta)
     total_loss = 0.0
     total_count = 0
     for x, y in tqdm(loader, desc="Val", leave=False):
@@ -129,7 +153,23 @@ def evaluate(model, loader, device) -> float:
         y = y.to(device)
         pred = model(x)
         # Evaluate using only translation components (exclude rotation)
-        loss = criterion(pred[:, :2], y[:, :2])
+        if loss_type == "mse":
+            per_elem = criterion(pred[:, :2], y[:, :2])
+        elif loss_type == "l1":
+            per_elem = (pred[:, :2] - y[:, :2]).abs()
+        else:
+            per_elem = huber(pred[:, :2], y[:, :2])
+
+        per_sample = per_elem.mean(dim=1)
+        # Base weights = 1.0
+        weights = torch.ones_like(per_sample)
+        eps = 1e-8
+        zero_mask = (y[:, 0].abs() <= eps) | (y[:, 1].abs() <= eps)
+        weights = torch.where(zero_mask, torch.full_like(per_sample, 0.001), weights)
+        if weight_alpha > 0.0:
+            mag = torch.linalg.vector_norm(y[:, :2], ord=2, dim=1)
+            weights = weights * (1.0 + weight_alpha * torch.clamp(mag / max(weight_beta, 1e-6), max=1.0))
+        loss = (per_sample * weights).mean()
         bsz = x.size(0)
         total_loss += loss.item() * bsz
         total_count += bsz
@@ -192,6 +232,10 @@ def main():
     parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")
     parser.add_argument("--ckpt_dir", type=str, default=os.path.join("training", "ann3", "checkpoints"))
     parser.add_argument("--ckpt_path", type=str, default="", help="Optional explicit checkpoint path to resume from")
+    parser.add_argument("--loss_type", type=str, default="mse", choices=["mse", "l1", "huber"])  # to combat mean-collapse
+    parser.add_argument("--huber_delta", type=float, default=0.1)
+    parser.add_argument("--weight_alpha", type=float, default=0.2, help="movement magnitude weighting strength (0 disables)")
+    parser.add_argument("--weight_beta", type=float, default=0.3, help="normalization for weighting")
     args = parser.parse_args()
 
     set_seed(args.seed)
@@ -245,8 +289,16 @@ def main():
             print("--resume specified but no checkpoint found; starting fresh.")
 
     for epoch in tqdm(range(start_epoch, args.epochs + 1), desc="Epochs"):
-        train_loss = train_one_epoch(model, train_loader, optimizer, device)
-        val_loss = evaluate(model, val_loader, device)
+        train_loss = train_one_epoch(
+            model, train_loader, optimizer, device,
+            loss_type=args.loss_type, huber_delta=args.huber_delta,
+            weight_alpha=args.weight_alpha, weight_beta=args.weight_beta,
+        )
+        val_loss = evaluate(
+            model, val_loader, device,
+            loss_type=args.loss_type, huber_delta=args.huber_delta,
+            weight_alpha=args.weight_alpha, weight_beta=args.weight_beta,
+        )
         best_val = min(best_val, val_loss)
         print(f"epoch {epoch:03d} | train_loss={train_loss:.6f} | val_loss={val_loss:.6f} | best_val={best_val:.6f}")
 
@@ -310,4 +362,14 @@ python3 train_processed.py \
   --d_model 512 --agent_layers 3 --time_layers 2 \
   --agent_heads 8 --time_heads 8 \
   --lr 2e-4 --weight_decay 0.01 --num_workers 8 --dropout 0.1
+
+
+ training on 512 samples to check for overfitting:
+
+ python3 train_processed.py \
+  --h5_path "/Users/vaibhav/Desktop/processed_game_logs.h5" \
+  --overfit 10000 --epochs 100 --batch_size 64 \
+  --d_model 256 --agent_layers 8 --time_layers 8 \
+  --agent_heads 8 --time_heads 8 \
+  --lr 2e-4 --num_workers 8
 """
