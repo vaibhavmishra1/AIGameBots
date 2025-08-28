@@ -273,6 +273,6 @@ python3 train.py \
 
 python3 train.py \
   --h5_path "/Users/vaibhav/Desktop/processed_game_logs_attention_1_sub_magnitude_0_2_100000.h5" \
-  --epochs 20 --batch_size 1024 --d_model 512 --temp_layers 3 --spat_layers 3 \
-  --lr 1e-4 --num_workers 9 --huber
+  --epochs 50 --batch_size 1024 --d_model 512 --temp_layers 3 --spat_layers 3 \
+  --lr 1e-4 --num_workers 8 --huber --resume
 """

@@ -230,6 +230,6 @@ if __name__ == "__main__":
 
 """
 python3 -u visualize_processed.py \
-  --h5_path "/Users/vaibhav/Desktop/processed_game_logs_attention_1_sub_1000.h5" \
+  --h5_path "/Users/vaibhav/Desktop/processed_game_logs_attention_1_sub_magnitude_0_2_1000.h5" \
   --index -1 --num_samples 10 --fps 5
   """

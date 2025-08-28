@@ -328,7 +328,7 @@ class AgentControlDataset(Dataset):
                 delta_rot = delta_rot / 30
                 
                 feat_vec = np.array([
-                    team_index,
+                    team_index, #0
                     rel_pos_x,
                     rel_pos_z,
                     rot,
@@ -338,8 +338,8 @@ class AgentControlDataset(Dataset):
                     lookRotationDelta_y,
                     attack,
                     shr_key,
-                    deltax,
-                    deltay,
+                    deltax, #10
+                    deltay, #11
                     delta_rot,
                 ], dtype=np.float32)
                 self.update_min_max_feature_values(feat_vec)
