@@ -14,7 +14,7 @@ from typing import Dict, Any
 def test_health():
     """Test the health endpoint"""
     try:
-        response = requests.get("http://localhost:8000/")
+        response = requests.get("http://localhost:8001/")
         if response.status_code == 200:
             data = response.json()
             print("✓ Health check passed")
@@ -33,7 +33,7 @@ def test_health():
 def test_model_info():
     """Test the model info endpoint"""
     try:
-        response = requests.get("http://localhost:8000/model/info")
+        response = requests.get("http://localhost:8001/model/info")
         if response.status_code == 200:
             data = response.json()
             print("✓ Model info retrieved")
@@ -53,34 +53,49 @@ def create_test_payload() -> Dict[str, Any]:
     """Create a test payload with dummy data"""
     # Create dummy agent features
     agent_features = {
+        "agent_id": 1,
+        "game_time": 10.5,
         "team_index": 0.0,
-        "rel_pos_x": 0.5,
-        "rel_pos_z": -0.3,
-        "rotation": 0.25,
+        "pos_x": 100.5,
+        "pos_z": -30.3,
+        "rotation": 45.0,
         "move_dir_x": 0.1,
         "move_dir_y": 0.0,
         "look_rot_delta_x": 0.0,
         "look_rot_delta_y": 0.0,
-        "attack": 0.0,
-        "shrinking_key": 0.0,
-        "delta_x": 0.0,
-        "delta_y": 0.0,
-        "delta_rot": 0.0
+        "attack": 0.0
     }
 
-    # Create temporal state (agent's history - let's say 5 timesteps)
-    temporal_agents = [agent_features] * 5
+    target_features = {
+        "agent_id": 2,
+        "game_time": 10.5,
+        "team_index": 1.0,
+        "pos_x": 120.5,
+        "pos_z": -40.3,
+        "rotation": 90.0,
+        "move_dir_x": -0.1,
+        "move_dir_y": 0.0,
+        "look_rot_delta_x": 0.0,
+        "look_rot_delta_y": 0.0,
+        "attack": 0.0
+    }
 
-    # Create spatial state (current snapshot - agent + target)
-    spatial_agents = [agent_features, agent_features]  # Agent and target
+    # Create timesteps (each timestep has a list of agents)
+    timesteps = []
+    for i in range(20):  # 5 timesteps
+        # Slightly modify positions for each timestep to simulate movement
+        agent_copy = agent_features.copy()
+        target_copy = target_features.copy()
+        agent_copy["pos_x"] += i * 1.0
+        target_copy["pos_x"] -= i * 1.0
+        agent_copy["game_time"] = 10.5 + i * 0.1
+        target_copy["game_time"] = 10.5 + i * 0.1
+        timesteps.append({
+            "agents": [agent_copy, target_copy]
+        })
 
     payload = {
-        "temporal": {
-            "agents": temporal_agents
-        },
-        "spatial": {
-            "agents": spatial_agents
-        }
+        "temporal_history": timesteps
     }
 
     return payload
@@ -91,38 +106,52 @@ def test_prediction():
     try:
         payload = create_test_payload()
 
+        # Print the payload structure
+        print("\nTest payload structure:")
+        print(f"Number of timesteps: {len(payload['temporal_history'])}")
+        print(f"Agents per timestep: {len(payload['temporal_history'][0]['agents'])}")
+        print(f"First timestep first agent: {json.dumps(payload['temporal_history'][0]['agents'][0], indent=2)}")
+
         response = requests.post(
-            "http://localhost:8000/predict/unity",
+            "http://localhost:8001/predict/unity",
             json=payload,
             headers={"Content-Type": "application/json"}
         )
+
+        print(f"\nResponse status code: {response.status_code}")
+        
+        try:
+            print(f"Response content: {response.content.decode()}")
+        except:
+            print(f"Raw response content: {response.content}")
 
         if response.status_code == 200:
             data = response.json()
             predictions = data.get("predictions", [])
 
             if len(predictions) >= 2:
-                print("✓ Prediction successful")
+                print("\n✓ Prediction successful")
                 print(f"  Delta X: {predictions[0]:.6f}")
                 print(f"  Delta Y: {predictions[1]:.6f}")
-                print(f"  Raw response: {json.dumps(data, indent=2)}")
                 return True
             else:
-                print(f"✗ Invalid predictions format: {predictions}")
+                print(f"\n✗ Invalid predictions format: {predictions}")
                 return False
         else:
-            print(f"✗ Prediction failed: {response.status_code}")
-            print(f"  Response: {response.text}")
+            print(f"\n✗ Prediction failed: {response.status_code}")
+            print(f"  Error: {response.text}")
             return False
     except Exception as e:
-        print(f"✗ Prediction error: {e}")
+        print(f"\n✗ Prediction error: {e}")
+        import traceback
+        print(f"  Traceback: {traceback.format_exc()}")
         return False
 
 
 def test_window_reset():
     """Test the window reset endpoint"""
     try:
-        response = requests.post("http://localhost:8000/window/reset")
+        response = requests.post("http://localhost:8001/window/reset")
         if response.status_code == 200:
             print("✓ Window reset successful")
             return True
