@@ -52,15 +52,15 @@ def create_loaders(h5_path: str, group: str, batch_size: int, overfit_n: int, nu
     if overfit_n > 0:
         n = min(overfit_n, total)
         sub = Subset(ds, list(range(n)))
-        train_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=True, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn)
-        val_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=False, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn)
+        train_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=True, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
+        val_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=False, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
         return train_loader, val_loader, n
 
     idx = list(range(total))
     split = int(0.9 * total)
     train_idx, val_idx = idx[:split], idx[split:]
-    train_loader = DataLoader(Subset(ds, train_idx), batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn)
-    val_loader = DataLoader(Subset(ds, val_idx), batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn)
+    train_loader = DataLoader(Subset(ds, train_idx), batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
+    val_loader = DataLoader(Subset(ds, val_idx), batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
     return train_loader, val_loader, total
 
 
@@ -424,8 +424,8 @@ if __name__ == "__main__":
 """
 python3 train.py \
   --h5_path "dataset_exp_hawk_0p02_0p3_1000000.h5" \
-  --epochs 20 --batch_size 1024 \
-  --lr 2e-4 --num_workers 8 --huber --temp_layers 4 --spat_layers 4 --temp_heads 8 --spat_heads 8 --d_model 512 --experiment_type hawk_temporal_and_spatial > output_temporal_and_spatial.txt 
+  --epochs 20 --batch_size 3072 \
+  --lr 2e-4 --num_workers 2 --huber --temp_layers 4 --spat_layers 4 --temp_heads 8 --spat_heads 8 --d_model 512 --experiment_type hawk_temporal_and_spatial > output_temporal_and_spatial.txt 
 
 
 python3 train.py \

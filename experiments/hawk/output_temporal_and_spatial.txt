@@ -1,3 +1,3 @@
-Using device: mps
-args: Namespace(h5_path='dataset_exp_hawk_0p02_0p3_1000000.h5', group='processed', epochs=20, batch_size=1024, lr=0.0002, weight_decay=0, overfit=0, num_workers=4, seed=42, d_model=512, temp_layers=4, spat_layers=4, temp_heads=8, spat_heads=8, dropout=0.0, include_rot=False, huber=True, resume=False, ckpt_dir='training/attention_v1/checkpoints', ckpt_path='', experiment_type='hawk_temporal_and_spatial', max_time=20, max_agents=10)
-Dataset samples: 1000001 | Train batches: 879 | Val batches: 98
+Using device: cuda
+args: Namespace(h5_path='dataset_exp_hawk_0p02_0p3_1000000.h5', group='processed', epochs=20, batch_size=3072, lr=0.0002, weight_decay=0, overfit=0, num_workers=3, seed=42, d_model=512, temp_layers=4, spat_layers=4, temp_heads=8, spat_heads=8, dropout=0.0, include_rot=False, huber=True, resume=False, ckpt_dir='training/attention_v1/checkpoints', ckpt_path='', experiment_type='hawk_temporal_and_spatial', max_time=20, max_agents=10)
+Dataset samples: 1000001 | Train batches: 293 | Val batches: 33

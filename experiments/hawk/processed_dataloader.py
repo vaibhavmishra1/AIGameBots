@@ -19,24 +19,30 @@ class ProcessedH5Dataset(Dataset):
         self.return_numpy = return_numpy
         self.experiment_type = experiment_type
 
-        with h5py.File(self.h5_path, 'r') as f:
-            if self.group_name not in f:
-                raise KeyError(f"Group '{self.group_name}' not found in {self.h5_path}")
-            grp = f[self.group_name]
-            # Store sample keys deterministically
-            self.sample_keys = sorted(list(grp.keys()))
+        # Keep file open for the lifetime of the dataset to avoid repeated open/close
+        self.h5_file = h5py.File(self.h5_path, 'r')
+        if self.group_name not in self.h5_file:
+            raise KeyError(f"Group '{self.group_name}' not found in {self.h5_path}")
+        self.grp = self.h5_file[self.group_name]
+        # Store sample keys deterministically
+        self.sample_keys = sorted(list(self.grp.keys()))
+
+    def __del__(self):
+        # Clean up the file handle
+        if hasattr(self, 'h5_file') and self.h5_file is not None:
+            self.h5_file.close()
 
     def __len__(self):
         return len(self.sample_keys)
 
     def __getitem__(self, idx):
         key = self.sample_keys[idx]
-        with h5py.File(self.h5_path, 'r') as f:
-            grp = f[self.group_name][key]
-            # Read temporal/spatial/actions written by export_processed_to_hdf5
-            temporal = grp['temporal'][()]
-            spatial = grp['spatial'][()]
-            actions = grp['actions'][()]
+        # Use the persistent file handle instead of opening/closing repeatedly
+        sample_grp = self.grp[key]
+        # Read temporal/spatial/actions written by export_processed_to_hdf5
+        temporal = sample_grp['temporal'][()]
+        spatial = sample_grp['spatial'][()]
+        actions = sample_grp['actions'][()]
 
         if self.experiment_type == "hawk_temporal_and_spatial":
             return (
