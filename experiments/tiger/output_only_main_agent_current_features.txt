@@ -1,0 +1,35 @@
+Using device: mps
+args: Namespace(h5_path='dataset_exp_tiger_0p02_0p3_100000.h5', group='processed', epochs=20, batch_size=128, lr=0.0002, weight_decay=0, overfit=0, num_workers=4, seed=42, d_model=256, temp_layers=2, spat_layers=2, temp_heads=8, spat_heads=8, dropout=0.0, include_rot=False, huber=True, resume=False, ckpt_dir='training/attention_v1/checkpoints', ckpt_path='', experiment_type='tiger_only_main_agent_current_features', max_time=20, max_agents=10)
+Dataset samples: 100001 | Train batches: 704 | Val batches: 79
+epoch 001 | train_loss=0.008712 | val_loss=0.001959 | best_val=0.001959
+epoch 002 | train_loss=0.001937 | val_loss=0.001794 | best_val=0.001794
+epoch 003 | train_loss=0.001852 | val_loss=0.001776 | best_val=0.001776
+epoch 004 | train_loss=0.001822 | val_loss=0.001777 | best_val=0.001776
+epoch 005 | train_loss=0.001802 | val_loss=0.001772 | best_val=0.001772
+epoch 006 | train_loss=0.001785 | val_loss=0.001760 | best_val=0.001760
+epoch 007 | train_loss=0.001771 | val_loss=0.001759 | best_val=0.001759
+epoch 008 | train_loss=0.001760 | val_loss=0.001753 | best_val=0.001753
+epoch 009 | train_loss=0.001751 | val_loss=0.001755 | best_val=0.001753
+epoch 010 | train_loss=0.001741 | val_loss=0.001745 | best_val=0.001745
+epoch 011 | train_loss=0.001735 | val_loss=0.001747 | best_val=0.001745
+epoch 012 | train_loss=0.001726 | val_loss=0.001748 | best_val=0.001745
+epoch 013 | train_loss=0.001721 | val_loss=0.001763 | best_val=0.001745
+epoch 014 | train_loss=0.001717 | val_loss=0.001742 | best_val=0.001742
+epoch 015 | train_loss=0.001712 | val_loss=0.001742 | best_val=0.001742
+epoch 016 | train_loss=0.001707 | val_loss=0.001738 | best_val=0.001738
+epoch 017 | train_loss=0.001704 | val_loss=0.001736 | best_val=0.001736
+epoch 018 | train_loss=0.001701 | val_loss=0.001748 | best_val=0.001736
+epoch 019 | train_loss=0.001698 | val_loss=0.001742 | best_val=0.001736
+epoch 020 | train_loss=0.001698 | val_loss=0.001738 | best_val=0.001736
+
+Sample predictions (val):
+[00] tgt=(-0.1394,0.0891) pred=(-0.1434,0.0931)
+[01] tgt=(-0.1415,0.0904) pred=(-0.1426,0.0926)
+[02] tgt=(-0.1352,0.0864) pred=(-0.1446,0.0939)
+[03] tgt=(-0.1401,0.0895) pred=(-0.1385,0.0897)
+[04] tgt=(-0.1405,0.0898) pred=(-0.1432,0.0929)
+[05] tgt=(-0.1407,0.0899) pred=(-0.1436,0.0932)
+[06] tgt=(-0.1403,0.0896) pred=(-0.1438,0.0933)
+[07] tgt=(-0.1405,0.0898) pred=(-0.1433,0.0930)
+[08] tgt=(-0.1405,0.0898) pred=(-0.1436,0.0932)
+[09] tgt=(-0.1400,0.0894) pred=(-0.1435,0.0932)

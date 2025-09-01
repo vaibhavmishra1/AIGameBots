@@ -1,0 +1,26 @@
+Using device: mps
+args: Namespace(h5_path='dataset_exp_tiger_0p02_0p3_100000.h5', group='processed', epochs=30, batch_size=128, lr=0.0002, weight_decay=0, overfit=0, num_workers=4, seed=42, d_model=256, temp_layers=2, spat_layers=2, temp_heads=8, spat_heads=8, dropout=0.0, include_rot=False, huber=True, resume=True, ckpt_dir='training/attention_v1/checkpoints', ckpt_path='', experiment_type='tiger_temporal_only', max_time=20, max_agents=10)
+Dataset samples: 100001 | Train batches: 704 | Val batches: 79
+Resuming from training/attention_v1/checkpoints/tiger_temporal_only_last.pt
+epoch 021 | train_loss=0.000962 | val_loss=0.001432 | best_val=0.001432
+epoch 022 | train_loss=0.000929 | val_loss=0.001480 | best_val=0.001432
+epoch 023 | train_loss=0.000917 | val_loss=0.001448 | best_val=0.001432
+epoch 024 | train_loss=0.000887 | val_loss=0.001446 | best_val=0.001432
+epoch 025 | train_loss=0.000882 | val_loss=0.001410 | best_val=0.001410
+epoch 026 | train_loss=0.000850 | val_loss=0.001448 | best_val=0.001410
+epoch 027 | train_loss=0.000816 | val_loss=0.001384 | best_val=0.001384
+epoch 028 | train_loss=0.000792 | val_loss=0.001442 | best_val=0.001384
+epoch 029 | train_loss=0.000772 | val_loss=0.001476 | best_val=0.001384
+epoch 030 | train_loss=0.000749 | val_loss=0.001431 | best_val=0.001384
+
+Sample predictions (val):
+[00] tgt=(-0.1394,0.0891) pred=(-0.1369,0.0822)
+[01] tgt=(-0.1415,0.0904) pred=(-0.1364,0.0822)
+[02] tgt=(-0.1352,0.0864) pred=(-0.1379,0.0824)
+[03] tgt=(-0.1401,0.0895) pred=(-0.1334,0.0814)
+[04] tgt=(-0.1405,0.0898) pred=(-0.1360,0.0822)
+[05] tgt=(-0.1407,0.0899) pred=(-0.1378,0.0811)
+[06] tgt=(-0.1403,0.0896) pred=(-0.1372,0.0828)
+[07] tgt=(-0.1405,0.0898) pred=(-0.1372,0.0825)
+[08] tgt=(-0.1405,0.0898) pred=(-0.1373,0.0823)
+[09] tgt=(-0.1400,0.0894) pred=(-0.1375,0.0822)

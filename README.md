@@ -27,4 +27,11 @@ data =  15 x 10 x 6
 10 = agents
 6 = feature_dim = [ team_id, rel_x, rel_z, shr_key, deltax, deltay]
 output = 5 * [dx, dy]
-data = 
+data = dataset_exp_hawk_0p02_0p3_100000.h5
+loss =  MSE
+epochs = 20
+temporal  only = loss = train =  val = 
+spatial only =  loss =  train =  val = 
+both temporal and spatial = loss = train =  val = 
+only main agent current features = loss = train =   val = 
+
