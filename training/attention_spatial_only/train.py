@@ -76,13 +76,13 @@ def train_one_epoch(model, loader, optimizer, device, huber: bool = False) -> fl
     criterion = nn.SmoothL1Loss() if huber else nn.MSELoss()
     total_loss = 0.0
     total_count = 0
-    for temporal, actions in tqdm(loader, desc="Train", leave=False):
-        temporal = temporal.to(device)
+    for spatial, actions in tqdm(loader, desc="Train", leave=False):
+        spatial = spatial.to(device)
         actions = actions.to(device)
         y = normalize_targets(actions)
 
         optimizer.zero_grad(set_to_none=True)
-        pred = model(temporal)
+        pred = model(spatial)
         #pred = sanitize_tensor(pred, name="pred")
         
         target = y
@@ -106,7 +106,7 @@ def train_one_epoch(model, loader, optimizer, device, huber: bool = False) -> fl
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step()
 
-        bs = temporal.size(0)
+        bs = spatial.size(0)
         total_loss += loss.item() * bs
         total_count += bs
     return total_loss / max(1, total_count)
@@ -118,18 +118,18 @@ def evaluate(model, loader, device, huber: bool = False) -> float:
     criterion = nn.SmoothL1Loss() if huber else nn.MSELoss()
     total_loss = 0.0
     total_count = 0
-    for temporal, actions in tqdm(loader, desc="Val", leave=False):
+    for spatial, actions in tqdm(loader, desc="Val", leave=False):
         #temporal = sanitize_tensor(temporal.to(device), name="temporal")
-        temporal = temporal.to(device)
+        spatial = spatial.to(device)
         #actions = sanitize_tensor(actions.to(device), name="actions")
         actions = actions.to(device)
         y = normalize_targets(actions)
         #pred = sanitize_tensor(model(temporal), name="pred")
-        pred = model(temporal)
+        pred = model(spatial)
         #target = sanitize_tensor(y[:, :2], name="target_xy")
         target = y[:, :2]
         loss = criterion(pred, target)
-        bs = temporal.size(0)
+        bs = spatial.size(0)
         total_loss += loss.item() * bs
         total_count += bs
     return total_loss / max(1, total_count)
@@ -139,10 +139,10 @@ def evaluate(model, loader, device, huber: bool = False) -> float:
 def print_samples(model, loader, device, k: int = 10) -> None:
     model.eval()
     shown = 0
-    for temporal, actions in loader:
-        temporal = temporal.to(device)
-        pred = model(temporal).cpu()
-        for i in range(temporal.size(0)):
+    for spatial, actions in loader:
+        spatial = spatial.to(device)
+        pred = model(spatial).cpu()
+        for i in range(spatial.size(0)):
             px, py = pred[i].tolist()
             ax, ay= actions[i].tolist()  # Ignore rotation
             print(f"[{shown:02d}] tgt=({ax:.4f},{ay:.4f}) pred=({px:.4f},{py:.4f})")
@@ -246,8 +246,8 @@ if __name__ == "__main__":
 
 """
 python3 train.py \
-  --h5_path "/Users/vaibhav/Desktop/processed_game_logs_attention_temporal_only_sub_0_1_0_3_100000.h5" \
-  --epochs 40 --batch_size 128 \
-  --lr 2e-4 --num_workers 1 --huber --weight_decay 0.01 --dropout 0.1
+  --h5_path "/Users/vaibhav/Desktop/processed_game_logs_attention_spatial_only_sub_0_1_0_3_100000.h5" \
+  --epochs 20 --batch_size 128 \
+  --lr 2e-4 --num_workers 1 --huber 
 
 """
