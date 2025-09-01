@@ -423,9 +423,9 @@ if __name__ == "__main__":
 
 """
 python3 train.py \
-  --h5_path "dataset_exp_hawk_0p02_0p3_100000.h5" \
-  --epochs 20 --batch_size 128 \
-  --lr 2e-4 --num_workers 4 --huber --experiment_type hawk_temporal_and_spatial > output_temporal_and_spatial.txt 
+  --h5_path "dataset_exp_hawk_0p02_0p3_1000000.h5" \
+  --epochs 20 --batch_size 1024 \
+  --lr 2e-4 --num_workers 8 --huber --temp_layers 4 --spat_layers 4 --temp_heads 8 --spat_heads 8 --d_model 512 --experiment_type hawk_temporal_and_spatial > output_temporal_and_spatial.txt 
 
 
 python3 train.py \
