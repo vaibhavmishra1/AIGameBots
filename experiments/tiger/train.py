@@ -238,10 +238,10 @@ def print_samples(model, loader, experiment_type, device, k: int = 10) -> None:
             spatial = spatial.to(device)
             pred = model(temporal, spatial).cpu()
             for i in range(temporal.size(0)):
-                px, py, prot = pred[i].tolist()
-                ax, ay, arot = actions[i].tolist()
+                px, py = pred[i].tolist()
+                ax, ay = actions[i].tolist()
                 # Remember: targets are unnormalized for dx/dy
-                print(f"[{shown:02d}] tgt=({ax:.4f},{ay:.4f},{arot:.4f}) pred=({px:.4f},{py:.4f},{prot:.4f})")
+                print(f"[{shown:02d}] tgt=({ax:.4f},{ay:.4f}) pred=({px:.4f},{py:.4f})")
                 shown += 1
                 if shown >= k:
                     return
@@ -413,7 +413,7 @@ if __name__ == "__main__":
 """
 python3 train.py \
   --h5_path "dataset_exp_tiger_0p02_0p3_100000.h5" \
-  --epochs 20 --batch_size 128 \
+  --epochs 40 --batch_size 128 \
   --lr 2e-4 --num_workers 4 --huber --experiment_type tiger_temporal_and_spatial > output_temporal_and_spatial.txt 
 
 
@@ -428,5 +428,10 @@ python3 train.py \
   --epochs 20 --batch_size 128 \
   --lr 2e-4 --num_workers 4 --huber --experiment_type tiger_spatial_only > output_spatial_only.txt 
 
+
+python3 train.py \
+  --h5_path "dataset_exp_tiger_0p02_0p3_100000.h5" \
+  --epochs 20 --batch_size 128 \
+  --lr 2e-4 --num_workers 4 --huber --experiment_type tiger_only_main_agent_current_features > output_only_main_agent_current_features.txt 
 
 """

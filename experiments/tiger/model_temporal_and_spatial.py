@@ -128,10 +128,10 @@ class TemporalEncoder(nn.Module):
 
 
 class TemporalSpatialTransformer(nn.Module):
-    def __init__(self, feature_dim: int = 13, d_model: int = 256, temp_layers: int = 2, temp_heads: int = 8, spat_layers: int = 2, spat_heads: int = 8, dropout: float = 0.1, max_time: int = 64):
+    def __init__(self, feature_dim: int = 13, d_model: int = 256, temp_layers: int = 2, temp_heads: int = 8, spat_layers: int = 2, spat_heads: int = 8, dropout: float = 0.1, max_time: int = 64, max_agents: int = 10):
         super().__init__()
         self.temporal = TemporalEncoder(feature_dim=feature_dim, d_model=d_model, nhead=temp_heads, num_layers=temp_layers, dropout=dropout, max_time=max_time)
-        self.spatial = SpatialSetEncoder(feature_dim=feature_dim, d_model=d_model, nhead=spat_heads, num_layers=spat_layers, dropout=dropout)
+        self.spatial = TemporalEncoder(feature_dim=feature_dim, d_model=d_model, nhead=spat_heads, num_layers=spat_layers, dropout=dropout, max_time=max_agents)
         self.fuse = nn.Sequential(nn.Linear(d_model * 2, d_model), nn.GELU(), nn.Dropout(dropout))
         self.head = nn.Sequential(nn.Linear(d_model, d_model), nn.GELU(), nn.Dropout(dropout), nn.Linear(d_model, 2))
 
