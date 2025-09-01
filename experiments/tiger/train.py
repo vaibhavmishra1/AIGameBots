@@ -13,6 +13,7 @@ from processed_dataloader import ProcessedH5Dataset
 from model_temporal_and_spatial import TemporalSpatialTransformer
 from model_temporal import TemporalTransformer
 from model_spatial import SpatialTransformer
+from model_ann import SimpleFeedForward
 def set_seed(seed: int = 42) -> None:
     random.seed(seed)
     np.random.seed(seed)
@@ -145,6 +146,26 @@ def train_one_epoch(model, loader, optimizer, device, experiment_type, huber: bo
             bs = spatial.size(0)
             total_loss += loss.item() * bs
             total_count += bs
+    elif experiment_type == "tiger_only_main_agent_current_features":
+        for temporal, actions in tqdm(loader, desc="Train", leave=False):
+            temporal = temporal.to(device)
+            actions = actions.to(device)
+            y = normalize_targets(actions)
+            
+            optimizer.zero_grad(set_to_none=True)
+            pred = model(temporal)
+            target = y
+            
+            loss = criterion(pred, target)
+            
+            loss.backward()
+            
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
+
+            bs = temporal.size(0)
+            total_loss += loss.item() * bs
+            total_count += bs
     return total_loss / max(1, total_count)
 
 
@@ -193,6 +214,17 @@ def evaluate(model, loader, device, experiment_type, huber: bool = False) -> flo
             bs = spatial.size(0)
             total_loss += loss.item() * bs
             total_count += bs
+    elif experiment_type == "tiger_only_main_agent_current_features":
+        for temporal, actions in loader:
+            temporal = temporal.to(device)
+            actions = actions.to(device)
+            y = normalize_targets(actions)
+            pred = model(temporal)
+            target = y
+            loss = criterion(pred, target)
+            bs = temporal.size(0)
+            total_loss += loss.item() * bs
+            total_count += bs
     return total_loss / max(1, total_count)
 
 
@@ -235,6 +267,17 @@ def print_samples(model, loader, experiment_type, device, k: int = 10) -> None:
                 shown += 1
                 if shown >= k:
                     return
+    elif experiment_type == "tiger_only_main_agent_current_features":
+        for temporal, actions in loader:
+            temporal = temporal.to(device)
+            pred = model(temporal).cpu()
+            for i in range(temporal.size(0)):
+                px, py = pred[i].tolist()
+                ax, ay = actions[i].tolist()
+                print(f"[{shown:02d}] tgt=({ax:.4f},{ay:.4f}) pred=({px:.4f},{py:.4f})")
+                shown += 1
+                if shown >= k:
+                    return
 def select_model(experiment_type: str, d_model: int, temp_layers: int, temp_heads: int, spat_layers: int, spat_heads: int, dropout: int, max_time: int, max_agents: int):
     if experiment_type == "tiger_temporal_and_spatial":
         return TemporalSpatialTransformer(
@@ -265,6 +308,12 @@ def select_model(experiment_type: str, d_model: int, temp_layers: int, temp_head
         num_heads=spat_heads,
         dropout=dropout,
         max_agents=max_agents
+    )
+    elif experiment_type == "tiger_only_main_agent_current_features":
+        return SimpleFeedForward(
+        input_dim=6,
+        hidden_dim=32,
+        output_dim=2
     )
 
 def main():
