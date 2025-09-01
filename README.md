@@ -30,8 +30,8 @@ output = 5 * [dx, dy]
 data = dataset_exp_hawk_0p02_0p3_100000.h5
 loss =  MSE
 epochs = 20
-temporal  only = loss = train =  val = 
-spatial only =  loss =  train =  val = 
-both temporal and spatial = loss = train =  val = 
-only main agent current features = loss = train =   val = 
+temporal  only = loss = train = 0.002663 val = 0.004804
+spatial only =  loss =  train = 0.002712 val = 0.003898 
+both temporal and spatial = loss = train = 0.001898 val = 0.003654
+only main agent current features = loss = train =  0.003980 val = 0.004889
 
