@@ -109,10 +109,10 @@ if __name__ == "__main__":
     # Simple smoke test with random inputs
     torch.manual_seed(0)
     batch_size = 4
-    T = 20  # temporal length
+    T = 5  # temporal length
     F = 5  # feature length
 
-    model = build_model(feature_dim=F, d_model=256, num_layers=2, num_heads=8, dropout=0.1, max_time=20)
+    model = build_model(feature_dim=F, d_model=256, num_layers=2, num_heads=8, dropout=0.1, max_time=5)
     model.eval()
 
     # Random inputs roughly in [-1, 1]

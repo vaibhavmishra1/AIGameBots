@@ -32,10 +32,14 @@ class ProcessedH5Dataset(Dataset):
         key = self.sample_keys[idx]
         with h5py.File(self.h5_path, 'r') as f:
             grp = f[self.group_name][key]
-            # Read temporal/spatial/actions written by export_processed_to_hdf5
+            # Read temporal/actions written by export_processed_to_hdf5
             temporal = grp['temporal'][()]
             actions = grp['actions'][()]
 
+        # Only keep the last 10 timesteps of temporal (shape: 10x5)
+
+        temporal = temporal[-5:]
+            
         if self.return_numpy:
             return temporal, actions
         return (

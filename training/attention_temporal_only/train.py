@@ -144,7 +144,7 @@ def print_samples(model, loader, device, k: int = 10) -> None:
         pred = model(temporal).cpu()
         for i in range(temporal.size(0)):
             px, py = pred[i].tolist()
-            ax, ay, _ = actions[i].tolist()  # Ignore rotation
+            ax, ay= actions[i].tolist()  # Ignore rotation
             print(f"[{shown:02d}] tgt=({ax:.4f},{ay:.4f}) pred=({px:.4f},{py:.4f})")
             shown += 1
             if shown >= k:
@@ -249,5 +249,6 @@ python3 train.py \
   --h5_path "/Users/vaibhav/Desktop/processed_game_logs_attention_temporal_only_sub_0_1_0_3_100000.h5" \
   --epochs 20 --batch_size 128 \
   --lr 2e-4 --num_workers 1 --huber
+
 
 """
