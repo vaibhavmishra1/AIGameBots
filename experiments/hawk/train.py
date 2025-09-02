@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Subset
 from tqdm import tqdm
 
+from processed_dataloader_mac import ProcessedH5DatasetMac
 from processed_dataloader import ProcessedH5Dataset
 from model_temporal_and_spatial import TemporalSpatialTransformer
 from model_temporal import TemporalTransformer
@@ -43,8 +44,12 @@ def collate_fn(batch):
         return x, a
 
 
-def create_loaders(h5_path: str, group: str, batch_size: int, overfit_n: int, num_workers: int, experiment_type: str) -> Tuple[DataLoader, DataLoader, int]:
-    ds = ProcessedH5Dataset(h5_path, group_name=group, return_numpy=False, experiment_type=experiment_type)
+def create_loaders(h5_path: str, group: str, batch_size: int, overfit_n: int, num_workers: int, experiment_type: str, workstation: str) -> Tuple[DataLoader, DataLoader, int]:
+    if workstation == "mac":
+        ds = ProcessedH5DatasetMac(h5_path, group_name=group, return_numpy=False, experiment_type=experiment_type)
+    else:
+        ds = ProcessedH5Dataset(h5_path, group_name=group, return_numpy=False, experiment_type=experiment_type)
+    #ds = ProcessedH5Dataset(h5_path, group_name=group, return_numpy=False, experiment_type=experiment_type)
     total = len(ds)
     if total == 0:
         raise RuntimeError("Dataset is empty")
@@ -52,15 +57,23 @@ def create_loaders(h5_path: str, group: str, batch_size: int, overfit_n: int, nu
     if overfit_n > 0:
         n = min(overfit_n, total)
         sub = Subset(ds, list(range(n)))
-        train_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=True, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
-        val_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=False, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
+        if workstation == "mac":
+            train_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=True, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn, persistent_workers=False)
+            val_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=False, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn, persistent_workers=False)
+        else:
+            train_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=True, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
+            val_loader = DataLoader(sub, batch_size=min(batch_size, n), shuffle=False, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
         return train_loader, val_loader, n
 
     idx = list(range(total))
     split = int(0.9 * total)
     train_idx, val_idx = idx[:split], idx[split:]
-    train_loader = DataLoader(Subset(ds, train_idx), batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
-    val_loader = DataLoader(Subset(ds, val_idx), batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
+    if workstation == "mac":
+        train_loader = DataLoader(Subset(ds, train_idx), batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn, persistent_workers=False)
+        val_loader = DataLoader(Subset(ds, val_idx), batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False, collate_fn=collate_fn, persistent_workers=False)
+    else:
+        train_loader = DataLoader(Subset(ds, train_idx), batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
+        val_loader = DataLoader(Subset(ds, val_idx), batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True, collate_fn=collate_fn, persistent_workers=True)
     return train_loader, val_loader, total
 
 
@@ -352,13 +365,14 @@ def main():
     parser.add_argument("--experiment_type", type=str, default="hawk_temporal_and_spatial")
     parser.add_argument("--max_time", type=int, default=20)
     parser.add_argument("--max_agents", type=int, default=10)
+    parser.add_argument("--workstation", type=str, default="mac")
     args = parser.parse_args()
 
     set_seed(args.seed)
     device = get_device()
     print(f"Using device: {device}")
     print(f"args: {args}")
-    train_loader, val_loader, total = create_loaders(args.h5_path, args.group, args.batch_size, args.overfit, args.num_workers, args.experiment_type)
+    train_loader, val_loader, total = create_loaders(args.h5_path, args.group, args.batch_size, args.overfit, args.num_workers, args.experiment_type, args.workstation)
     print(f"Dataset samples: {total} | Train batches: {len(train_loader)} | Val batches: {len(val_loader)}")
 
 
