@@ -67,25 +67,25 @@ class ProcessedH5DatasetMac(Dataset):
 
 def main():
     h5_path = "/Users/vaibhav/Desktop/AIGameBots/experiments/hawk/dataset_exp_hawk_0p02_0p3_100000.h5"
-    experiment_type = "hawk_only_main_agent_current_features"
+    experiment_type = "hawk_temporal_and_spatial"
     if experiment_type == "hawk_temporal_and_spatial":
-        agents_dataset = ProcessedH5Dataset(h5_path, group_name="processed", experiment_type=experiment_type)
+        agents_dataset = ProcessedH5DatasetMac(h5_path, group_name="processed", experiment_type=experiment_type)
         (temporal, spatial, actions) = agents_dataset[0]
         print(temporal.shape)
         print(spatial.shape)
         print(actions.shape)
     elif experiment_type == "hawk_temporal_only":
-        agents_dataset = ProcessedH5Dataset(h5_path, group_name="processed", experiment_type=experiment_type)
+        agents_dataset = ProcessedH5DatasetMac(h5_path, group_name="processed", experiment_type=experiment_type)
         (temporal, actions) = agents_dataset[0]
         print(temporal.shape)
         print(actions.shape)
     elif experiment_type == "hawk_spatial_only":
-        agents_dataset = ProcessedH5Dataset(h5_path, group_name="processed", experiment_type=experiment_type)
+        agents_dataset = ProcessedH5DatasetMac(h5_path, group_name="processed", experiment_type=experiment_type)
         (spatial, actions) = agents_dataset[0]
         print(spatial.shape)
         print(actions.shape)
     elif experiment_type == "hawk_only_main_agent_current_features":
-        agents_dataset = ProcessedH5Dataset(h5_path, group_name="processed", experiment_type=experiment_type)
+        agents_dataset = ProcessedH5DatasetMac(h5_path, group_name="processed", experiment_type=experiment_type)
         (temporal, actions) = agents_dataset[0]
         print(temporal.shape)
         print(actions.shape)
