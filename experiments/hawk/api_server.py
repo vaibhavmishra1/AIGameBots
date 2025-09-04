@@ -9,6 +9,7 @@ from collections import deque
 import threading
 import uvicorn
 import h5py
+import argparse
 from datetime import datetime
 import json
 from fastapi.encoders import jsonable_encoder
@@ -109,7 +110,7 @@ class UnityStatePayload(BaseModel):
 
 
 class UnityDualOutputResponse(BaseModel):
-    predictions: List[float]  # length 2: [delta_x, delta_y]
+    predictions: List[float]  # length 10: [dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4, dx5, dy5]
 
 
 def load_feature_stats():
@@ -375,7 +376,7 @@ async def predict_unity(request: Request, payload: UnityStatePayload) -> UnityDu
                     features_array[t, a] = features
 
         log_debug(f"Converted to numpy array with shape: {features_array.shape}")
-        log_debug(f"Sample values from first timestep: {features_array[19, 0]}")
+        log_debug(f"Sample values from first timestep: {features_array[0, 0]}")
         #(zonecenterx, zonecenterz, shr_key) = calculate_expected_shrinking_area_center(features_array)
         temporal_data, spatial_data = preprocess_data(features_array)
         print(temporal_data.shape, spatial_data.shape)
@@ -390,9 +391,8 @@ async def predict_unity(request: Request, payload: UnityStatePayload) -> UnityDu
             output = SINGLE_MODEL(temporal_tensor, spatial_tensor)  # (1, 10) - 5 pairs of (dx, dy)
             preds = output.squeeze(0).cpu().tolist()  # [dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4, dx5, dy5]
 
-        # Return first action pair to match UnityDualOutputResponse schema
-        # The model outputs 5 action pairs, but API returns the primary one
-        predictions = preds  # [dx, dy] for first action
+        # Return all 10 predictions (5 pairs of dx, dy) for web environment
+        predictions = preds  # All 10 values: [dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4, dx5, dy5]
         print("predictions: ", predictions)
         return UnityDualOutputResponse(predictions=predictions)
     except Exception as e:
@@ -409,5 +409,8 @@ async def predict_unity(request: Request, payload: UnityStatePayload) -> UnityDu
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Run the AI Agent API server')
+    parser.add_argument('--port', type=int, default=8001, help='Port to run the server on')
+    args = parser.parse_args()
 
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=args.port)
