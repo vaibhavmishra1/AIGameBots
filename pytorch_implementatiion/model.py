@@ -196,6 +196,12 @@ class CSGOModel(nn.Module):
         self.aux_input_length = aux_input_length
         self.aux_input_on = aux_input_on
 
+        # Stateful controls
+        self._stateful: bool = False
+        self._convlstm1_state = None  # Tuple[Tensor, Tensor] or None
+        self._convlstm_extra_state = None  # Tuple[Tensor, Tensor] or None
+        self._lstm_state = None  # Tuple[Tensor, Tensor] or None
+
         # Load EfficientNetB0 as base model
         if pretrained and 'randinit' not in model_name:
             weights = EfficientNet_B0_Weights.IMAGENET1K_V1
@@ -299,10 +305,17 @@ class CSGOModel(nn.Module):
         x = self.time_distributed(x)  # (batch, timesteps, 1280, 5, 9)
 
         # Apply ConvLSTM2D layers
-        x, _ = self.convlstm1(x)
+        # ConvLSTM 1 (optionally stateful)
+        convlstm1_states_in = self._convlstm1_state if self._stateful else None
+        x, convlstm1_states_out = self.convlstm1(x, states=convlstm1_states_in)
+        if self._stateful:
+            self._convlstm1_state = convlstm1_states_out
 
         if 'extra' in self.model_name:
-            x, _ = self.convlstm_extra(x)
+            convlstm_extra_states_in = self._convlstm_extra_state if self._stateful else None
+            x, convlstm_extra_states_out = self.convlstm_extra(x, states=convlstm_extra_states_in)
+            if self._stateful:
+                self._convlstm_extra_state = convlstm_extra_states_out
 
         # Flatten
         x = self.flatten(x)  # (batch, timesteps, convlstm_filters * 5 * 9)
@@ -311,7 +324,11 @@ class CSGOModel(nn.Module):
         if 'LSTM' in self.model_name:
             if self.lstm_dropout is not None:
                 x = self.lstm_dropout(x)
-            x, _ = self.lstm(x)  # (batch, timesteps, 256)
+            # Pack LSTM state if stateful; expects (h_0, c_0)
+            lstm_state_in = self._lstm_state if self._stateful else None
+            x, lstm_state_out = self.lstm(x, lstm_state_in)  # (batch, timesteps, 256)
+            if self._stateful:
+                self._lstm_state = lstm_state_out
             if self.lstm_output_dropout is not None:
                 x = self.lstm_output_dropout(x)
 
@@ -333,6 +350,17 @@ class CSGOModel(nn.Module):
         value_out = self.value_output(x)  # (batch, timesteps, 1)
 
         return keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out
+
+    # Stateful API
+    def set_stateful(self, enabled: bool = True) -> None:
+        self._stateful = bool(enabled)
+        if not self._stateful:
+            self.reset_states()
+
+    def reset_states(self) -> None:
+        self._convlstm1_state = None
+        self._convlstm_extra_state = None
+        self._lstm_state = None
 
     def get_output_concatenated(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
