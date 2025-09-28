@@ -44,9 +44,96 @@ def categorical_ce_from_probs(pred_probs: torch.Tensor, target_onehot: torch.Ten
     return loss.mean()
 
 
+def create_gaussian_targets(target_onehot: torch.Tensor, sigma: float = 2.0) -> torch.Tensor:
+    """
+    Convert one-hot targets to Gaussian soft targets.
+    
+    Args:
+        target_onehot: One-hot encoded targets [batch, timesteps, num_classes]
+        sigma: Standard deviation of the Gaussian distribution
+        
+    Returns:
+        Gaussian soft targets with same shape as input
+    """
+    device = target_onehot.device
+    batch_size, timesteps, num_classes = target_onehot.shape
+    
+    # Get the index of the true class for each sample
+    true_indices = target_onehot.argmax(dim=-1)  # [batch, timesteps]
+    
+    # Create position indices for each class
+    class_indices = torch.arange(num_classes, device=device).float()  # [num_classes]
+    
+    # Expand dimensions for broadcasting
+    true_indices_expanded = true_indices.unsqueeze(-1).float()  # [batch, timesteps, 1]
+    class_indices_expanded = class_indices.unsqueeze(0).unsqueeze(0)  # [1, 1, num_classes]
+    
+    # Calculate Gaussian weights: exp(-0.5 * ((x - mu) / sigma)^2)
+    distances = class_indices_expanded - true_indices_expanded  # [batch, timesteps, num_classes]
+    gaussian_weights = torch.exp(-0.5 * (distances / sigma) ** 2)
+    
+    # Normalize so that the peak (correct class) has value 1
+    # We do this by dividing by the maximum value in each sample
+    max_weights = gaussian_weights.max(dim=-1, keepdim=True)[0]  # [batch, timesteps, 1]
+    gaussian_targets = gaussian_weights / max_weights
+    
+    return gaussian_targets
+
+
+def gaussian_categorical_ce_loss(pred_probs: torch.Tensor, target_onehot: torch.Tensor, sigma: float = 2.0) -> torch.Tensor:
+    """
+    Categorical cross-entropy loss with Gaussian-weighted error.
+    This version gives ~0 loss when predicting the correct class with high confidence.
+    
+    Args:
+        pred_probs: Predicted probabilities [batch, timesteps, num_classes]
+        target_onehot: One-hot encoded targets [batch, timesteps, num_classes]
+        sigma: Standard deviation for Gaussian weighting
+        
+    Returns:
+        Loss value
+    """
+    # Get the true class indices
+    true_indices = target_onehot.argmax(dim=-1)  # [batch, timesteps]
+    
+    # Standard cross-entropy loss for the correct class
+    eps = 1e-8
+    pred_probs = pred_probs.clamp(min=eps, max=1.0)
+    correct_class_loss = -torch.gather(pred_probs.log(), dim=-1, index=true_indices.unsqueeze(-1)).squeeze(-1)
+    
+    # Add Gaussian-weighted penalty for incorrect predictions
+    device = target_onehot.device
+    batch_size, timesteps, num_classes = target_onehot.shape
+    
+    # Create position indices for each class
+    class_indices = torch.arange(num_classes, device=device).float()
+    
+    # Expand dimensions for broadcasting
+    true_indices_expanded = true_indices.unsqueeze(-1).float()  # [batch, timesteps, 1]
+    class_indices_expanded = class_indices.unsqueeze(0).unsqueeze(0)  # [1, 1, num_classes]
+    
+    # Calculate distances and Gaussian weights
+    distances = class_indices_expanded - true_indices_expanded  # [batch, timesteps, num_classes]
+    gaussian_weights = torch.exp(-0.5 * (distances / sigma) ** 2)
+    
+    # Set weight to 0 for the correct class (no penalty for being right)
+    correct_mask = (class_indices_expanded == true_indices_expanded).float()
+    gaussian_weights = gaussian_weights * (1 - correct_mask)
+    
+    # Penalty for putting probability mass on wrong classes, weighted by distance
+    wrong_class_penalty = (gaussian_weights * pred_probs).sum(dim=-1)
+    
+    # Total loss: negative log likelihood of correct class + Gaussian-weighted penalty
+    total_loss = correct_class_loss + wrong_class_penalty
+    
+    return total_loss.mean()
+
+
 def compute_custom_loss(
     outputs: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
     y_true: torch.Tensor,
+    mouse_sigma_x: float = 1.5,
+    mouse_sigma_y: float = 1.0,
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     """
     Replicates the TensorFlow custom loss components from dm_train_model.py.
@@ -79,9 +166,11 @@ def compute_custom_loss(
     loss2a = bce_from_probs(clicks_out[:, :, 0:1], clicks_true[:, :, 0:1])  # left click
     loss2b = bce_from_probs(clicks_out[:, :, 1:2], clicks_true[:, :, 1:2])  # right click
 
-    # 3) Mouse categorical CE on one-hot targets
-    loss3 = categorical_ce_from_probs(mouse_x_out, mouse_x_true)
-    loss4 = categorical_ce_from_probs(mouse_y_out, mouse_y_true)
+    # 3) Mouse categorical CE with Gaussian soft targets
+    # Use configurable sigma values for x and y based on their discretization density
+    # mouse_x has 23 classes, mouse_y has 15 classes
+    loss3 = gaussian_categorical_ce_loss(mouse_x_out, mouse_x_true, sigma=mouse_sigma_x)
+    loss4 = gaussian_categorical_ce_loss(mouse_y_out, mouse_y_true, sigma=mouse_sigma_y)
 
     # 4) Critic loss: 10 * MSE( reward_t + gamma * v_{t+1} - v_t ) over consecutive timesteps
     v_t = value_out[:, :-1, :]  # [B, T-1, 1]
@@ -168,6 +257,8 @@ def validate(
     model: nn.Module,
     val_loader,
     device: torch.device,
+    mouse_sigma_x: float = 1.5,
+    mouse_sigma_y: float = 1.0,
 ) -> Tuple[float, Dict[str, float]]:
     model.eval()
     total_loss = 0.0
@@ -179,7 +270,7 @@ def validate(
         batch_y = batch_y.to(device)
 
         outputs = model(batch_x)
-        loss, _ = compute_custom_loss(outputs, batch_y)
+        loss, _ = compute_custom_loss(outputs, batch_y, mouse_sigma_x, mouse_sigma_y)
         metrics = compute_metrics(outputs, batch_y)
 
         total_loss += float(loss.detach().cpu().item())
@@ -239,7 +330,7 @@ def train(
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=(device.type == 'cuda')):
                 outputs = model(batch_x)
-                loss, loss_parts = compute_custom_loss(outputs, batch_y)
+                loss, loss_parts = compute_custom_loss(outputs, batch_y, args.mouse_sigma_x, args.mouse_sigma_y)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -261,7 +352,7 @@ def train(
         avg_train_loss = running_loss / max(running_batches, 1)
 
         # Validation
-        val_loss, val_metrics = validate(model, val_loader, device)
+        val_loss, val_metrics = validate(model, val_loader, device, args.mouse_sigma_x, args.mouse_sigma_y)
 
         elapsed = time.time() - epoch_start
         print(
@@ -311,6 +402,8 @@ def parse_args() -> argparse.Namespace:
     parser.set_defaults(pretrained=True)
     parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=50, help="Steps between logs")
+    parser.add_argument('--mouse_sigma_x', type=float, default=1.5, help="Gaussian sigma for mouse X loss (default: 1.5)")
+    parser.add_argument('--mouse_sigma_y', type=float, default=1.0, help="Gaussian sigma for mouse Y loss (default: 1.0)")
     return parser.parse_args()
 
 
