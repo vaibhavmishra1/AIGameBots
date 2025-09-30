@@ -70,6 +70,8 @@ class TorchAgent:
         except Exception:
             pass
         self._load_weights(checkpoint_path)
+        # Keep track of last action one-hot to feed as aux
+        self._last_action = np.zeros((1, 1, n_keys + n_clicks + n_mouse_x + n_mouse_y), dtype=np.float32)
 
     def _load_weights(self, checkpoint_path: str) -> None:
         ckpt = torch.load(checkpoint_path, map_location=self.device)
@@ -90,7 +92,10 @@ class TorchAgent:
             x = x / 255.0
         x = x.to(self.device)
 
-        keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = self.model(x)
+        # Build aux input from last action for this single timestep
+        aux = torch.from_numpy(self._last_action).float().to(self.device)
+
+        keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = self.model(x, aux_input=aux)
 
         # Use last timestep (we provide T=1)
         keys = keys_out[:, -1, :]
@@ -105,6 +110,8 @@ class TorchAgent:
     def reset_states(self) -> None:
         try:
             self.model.reset_states()
+            # Reset last action aux as well
+            self._last_action[...] = 0.0
         except Exception:
             pass
 
@@ -311,7 +318,7 @@ for training_iter in range(n_iters_total):
     checkpoint_path = os.path.join(checkpoint_dir, 'default_best.pt')
     checkpoint_path = os.environ.get('PYTORCH_AGENT_CKPT', checkpoint_path)
     print('loading PyTorch model from', checkpoint_path)
-    model_run = TorchAgent(checkpoint_path=checkpoint_path, model_name='default', aux_input_on=False, pretrained=False)
+    model_run = TorchAgent(checkpoint_path=checkpoint_path, model_name='default', aux_input_on=True, pretrained=False)
 
     n_loops = 0  # how many times loop through
     keys_pressed_apply = []
@@ -470,6 +477,13 @@ for training_iter in range(n_iters_total):
 
         # think we only needed this when feeding in aux info?
         keys_pressed_onehot, Lclicks_onehot, Rclicks_onehot, mouse_x_onehot, mouse_y_onehot = actions_to_onehot(keys_pressed, mouse_x, mouse_y, Lclicks, Rclicks)
+        # Update agent's last action aux for next prediction
+        try:
+            concat_action = np.concatenate([keys_pressed_onehot, Lclicks_onehot, Rclicks_onehot, mouse_x_onehot, mouse_y_onehot]).astype(np.float32)
+            if getattr(model_run, '_last_action', None) is not None and model_run._last_action.shape[-1] == concat_action.shape[0]:
+                model_run._last_action[0, 0, :] = concat_action
+        except Exception:
+            pass
 
         # append new element to buffer lists at tail
         recent_actions.append(np.concatenate([keys_pressed_onehot, Lclicks_onehot, Rclicks_onehot, mouse_x_onehot, mouse_y_onehot]))

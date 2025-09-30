@@ -169,7 +169,8 @@ class CSGOModel(nn.Module):
         n_mouse_y: int = 15,
         aux_input_length: int = 17,
         aux_input_on: bool = False,
-        pretrained: bool = True
+        pretrained: bool = True,
+        freeze_backbone: bool = False
     ):
         """
         Initialize the CSGO model.
@@ -209,10 +210,9 @@ class CSGOModel(nn.Module):
         else:
             self.base_model = efficientnet_b0(weights=None)
 
-        # Freeze base model parameters if using pretrained weights
-        if pretrained and 'randinit' not in model_name:
-            for param in self.base_model.parameters():
-                param.requires_grad = False
+        # Freeze or unfreeze base model parameters
+        for param in self.base_model.parameters():
+            param.requires_grad = not freeze_backbone
 
         # Use only the feature extractor portion of EfficientNetB0
         self.intermediate_model = self.base_model.features
@@ -284,6 +284,10 @@ class CSGOModel(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=-1)
 
+        # ImageNet normalization buffers for EfficientNet inputs
+        self.register_buffer('imagenet_mean', torch.tensor([0.485, 0.456, 0.406]).view(1, 1, 3, 1, 1))
+        self.register_buffer('imagenet_std', torch.tensor([0.229, 0.224, 0.225]).view(1, 1, 3, 1, 1))
+
     def forward(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, ...]:
         """
         Forward pass through the model.
@@ -300,6 +304,9 @@ class CSGOModel(nn.Module):
         # Ensure input is in the right format (batch, timesteps, channels, height, width)
         if channels == 3:
             x = x.permute(0, 1, 4, 2, 3)  # (batch, timesteps, 3, height, width)
+
+        # Normalize to ImageNet statistics expected by EfficientNet
+        x = (x - self.imagenet_mean) / self.imagenet_std
 
         # Apply intermediate model with TimeDistributed
         x = self.time_distributed(x)  # (batch, timesteps, 1280, 5, 9)
@@ -334,9 +341,17 @@ class CSGOModel(nn.Module):
 
         # Handle auxiliary input
         if self.aux_input_on and aux_input is not None:
-            aux_features = self.aux_dense(aux_input)  # (batch, 256)
-            # Repeat aux features for each timestep
-            aux_features = aux_features.unsqueeze(1).repeat(1, timesteps, 1)  # (batch, timesteps, 256)
+            # Support either (batch, aux_dim) or (batch, timesteps, aux_dim)
+            if aux_input.dim() == 2:
+                aux_features = self.aux_dense(aux_input)  # (batch, 256)
+                aux_features = aux_features.unsqueeze(1).repeat(1, timesteps, 1)  # (batch, timesteps, 256)
+            elif aux_input.dim() == 3:
+                b, t, d = aux_input.size()
+                aux_flat = aux_input.contiguous().view(b * t, d)
+                aux_proj = self.aux_dense(aux_flat)  # (b*t, 256)
+                aux_features = aux_proj.view(b, t, 256)
+            else:
+                raise ValueError("aux_input must have shape (batch, aux_dim) or (batch, timesteps, aux_dim)")
             x = torch.cat([x, aux_features], dim=-1)  # (batch, timesteps, 256 + 256)
 
         # Apply shared dense layer
@@ -385,7 +400,8 @@ class CSGOModel(nn.Module):
 def create_model(
     model_name: str = 'default',
     pretrained: bool = True,
-    aux_input_on: bool = False
+    aux_input_on: bool = False,
+    freeze_backbone: bool = False
 ) -> CSGOModel:
     """
     Create a CSGO model with the specified configuration.
@@ -400,8 +416,13 @@ def create_model(
     """
     from config import (
         input_shape, n_keys, n_clicks, n_mouse_x, n_mouse_y,
-        aux_input_length, AUX_INPUT_ON
+        aux_input_length as cfg_aux_len, AUX_INPUT_ON
     )
+
+    # If aux is enabled, use per-timestep previous action vector length
+    use_aux = aux_input_on or AUX_INPUT_ON
+    action_dim = n_keys + n_clicks + n_mouse_x + n_mouse_y
+    aux_len = action_dim if use_aux else cfg_aux_len
 
     return CSGOModel(
         model_name=model_name,
@@ -410,9 +431,10 @@ def create_model(
         n_clicks=n_clicks,
         n_mouse_x=n_mouse_x,
         n_mouse_y=n_mouse_y,
-        aux_input_length=aux_input_length,
-        aux_input_on=aux_input_on or AUX_INPUT_ON,
-        pretrained=pretrained
+        aux_input_length=aux_len,
+        aux_input_on=use_aux,
+        pretrained=pretrained,
+        freeze_backbone=freeze_backbone
     )
 
 if __name__ == "__main__":

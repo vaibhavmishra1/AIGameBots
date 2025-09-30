@@ -58,7 +58,7 @@ class CSGODataset(Dataset):
     def __len__(self) -> int:
         return len(self.data_list)
 
-    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Get a single sample from the dataset.
 
@@ -126,7 +126,14 @@ class CSGODataset(Dataset):
         x_tensor = torch.from_numpy(x_data).float() / 255.0  # Normalize to [0, 1]
         y_tensor = torch.from_numpy(y_with_reward).float()
 
-        return x_tensor, y_tensor
+        # Build auxiliary input consisting of previous timestep's action one-hots
+        # Use AUGMENTED actions (exclude reward/advantage columns)
+        action_dim = n_keys + n_clicks + n_mouse_x + n_mouse_y
+        prev_actions = np.zeros((N_TIMESTEPS, action_dim), dtype=np.float32)
+        prev_actions[1:] = y_with_reward[:-1, :action_dim]
+        aux_tensor = torch.from_numpy(prev_actions).float()
+
+        return x_tensor, y_tensor, aux_tensor
 
     def _open_all_h5_files(self) -> None:
         """
@@ -434,9 +441,10 @@ if __name__ == "__main__":
     print(f"Training loader full length: {len(training_loader_full)}")
 
     # Test loading a single batch
-    for batch_x, batch_y in training_loader_full:
+    for batch_x, batch_y, batch_aux in training_loader_full:
         print(f"Batch X shape: {batch_x.shape}")
         print(f"Batch Y shape: {batch_y.shape}")
+        print(f"Batch AUX shape (prev actions): {batch_aux.shape}")
         print(f"Sample X range: [{batch_x.min():.3f}, {batch_x.max():.3f}]")
         print(f"Sample Y range: [{batch_y.min():.3f}, {batch_y.max():.3f}]")
         

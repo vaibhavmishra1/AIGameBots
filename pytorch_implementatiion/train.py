@@ -166,11 +166,30 @@ def compute_custom_loss(
     loss2a = bce_from_probs(clicks_out[:, :, 0:1], clicks_true[:, :, 0:1])  # left click
     loss2b = bce_from_probs(clicks_out[:, :, 1:2], clicks_true[:, :, 1:2])  # right click
 
+<<<<<<< HEAD
     # 3) Mouse categorical CE with Gaussian soft targets
     # Use configurable sigma values for x and y based on their discretization density
     # mouse_x has 23 classes, mouse_y has 15 classes
     loss3 = gaussian_categorical_ce_loss(mouse_x_out, mouse_x_true, sigma=mouse_sigma_x)
     loss4 = gaussian_categorical_ce_loss(mouse_y_out, mouse_y_true, sigma=mouse_sigma_y)
+=======
+    # 3) Mouse X mixed loss: CE + normalized EMD (Wasserstein-1) with uniform bins
+    # Cross-entropy component
+    ce_x = categorical_ce_from_probs(mouse_x_out, mouse_x_true)
+    # EMD component (normalize across classes to stabilize scale)
+    cdf_pred_x = torch.cumsum(mouse_x_out, dim=-1)
+    cdf_true_x = torch.cumsum(mouse_x_true, dim=-1)
+    emd_x = (cdf_pred_x - cdf_true_x).abs().mean(dim=-1).mean()
+    # Blend: keep CE dominant initially
+    alpha = 0.2
+    loss3 = alpha * emd_x + (1.0 - alpha) * ce_x
+    # Mouse Y mixed loss: CE + normalized EMD (Wasserstein-1) with uniform bins
+    ce_y = categorical_ce_from_probs(mouse_y_out, mouse_y_true)
+    cdf_pred_y = torch.cumsum(mouse_y_out, dim=-1)
+    cdf_true_y = torch.cumsum(mouse_y_true, dim=-1)
+    emd_y = (cdf_pred_y - cdf_true_y).abs().mean(dim=-1).mean()
+    loss4 = alpha * emd_y + (1.0 - alpha) * ce_y
+>>>>>>> 7759da6 (model-v1 training complete)
 
     # 4) Critic loss: 10 * MSE( reward_t + gamma * v_{t+1} - v_t ) over consecutive timesteps
     v_t = value_out[:, :-1, :]  # [B, T-1, 1]
@@ -179,7 +198,8 @@ def compute_custom_loss(
     td_target = r_t + GAMMA * v_tp1
     loss_crit = 10.0 * F.mse_loss(v_t, td_target, reduction='mean')
 
-    total_loss = loss1a + loss1b + loss1c + loss1d + loss2a + loss2b + loss3 + loss4 + loss_crit
+    total_loss = loss1a + loss1b + loss1c + loss1d + loss2a + loss2b + loss3 + loss4 #+ loss_crit
+    #total_loss = loss3 
 
     parts = {
         'loss_keys_wasd': float(loss1a.detach().cpu().item()),
@@ -192,7 +212,7 @@ def compute_custom_loss(
         'loss_mouse_y': float(loss4.detach().cpu().item()),
         'loss_critic': float(loss_crit.detach().cpu().item()),
     }
-
+    
     return total_loss, parts
 
 
@@ -265,12 +285,18 @@ def validate(
     total_batches = 0
     agg_metrics: Dict[str, float] = {}
 
-    for batch_x, batch_y in val_loader:
+    for batch_x, batch_y, batch_aux in val_loader:
         batch_x = batch_x.to(device)
         batch_y = batch_y.to(device)
+        batch_aux = batch_aux.to(device)
 
+<<<<<<< HEAD
         outputs = model(batch_x)
         loss, _ = compute_custom_loss(outputs, batch_y, mouse_sigma_x, mouse_sigma_y)
+=======
+        outputs = model(batch_x, aux_input=batch_aux)
+        loss, _ = compute_custom_loss(outputs, batch_y)
+>>>>>>> 7759da6 (model-v1 training complete)
         metrics = compute_metrics(outputs, batch_y)
 
         total_loss += float(loss.detach().cpu().item())
@@ -305,7 +331,7 @@ def train(
     )
 
     # Model
-    model = create_model(model_name=args.model_name, pretrained=args.pretrained, aux_input_on=False)
+    model = create_model(model_name=args.model_name, pretrained=args.pretrained, aux_input_on=True, freeze_backbone=args.freeze_backbone)
     model.to(device)
 
     # Optimizer
@@ -316,21 +342,27 @@ def train(
     best_val_loss = math.inf
 
     global_step = 0
-    
+    model.train()
     for epoch in range(1, args.epochs + 1):
-        model.train()
+        
         epoch_start = time.time()
         running_loss = 0.0
         running_batches = 0
 
-        for batch_idx, (batch_x, batch_y) in enumerate(train_loader, start=1):
+        for batch_idx, (batch_x, batch_y, batch_aux) in enumerate(train_loader, start=1):
             batch_x = batch_x.to(device)
             batch_y = batch_y.to(device)
+            batch_aux = batch_aux.to(device)
 
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=(device.type == 'cuda')):
+<<<<<<< HEAD
                 outputs = model(batch_x)
                 loss, loss_parts = compute_custom_loss(outputs, batch_y, args.mouse_sigma_x, args.mouse_sigma_y)
+=======
+                outputs = model(batch_x, aux_input=batch_aux)
+                loss, loss_parts = compute_custom_loss(outputs, batch_y)
+>>>>>>> 7759da6 (model-v1 training complete)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -349,61 +381,73 @@ def train(
                 )
                 print(msg)
 
-        avg_train_loss = running_loss / max(running_batches, 1)
+        # avg_train_loss = running_loss / max(running_batches, 1)
 
+<<<<<<< HEAD
         # Validation
         val_loss, val_metrics = validate(model, val_loader, device, args.mouse_sigma_x, args.mouse_sigma_y)
+=======
+        # # Validation
+        # val_loss, val_metrics = validate(model, val_loader, device)
+>>>>>>> 7759da6 (model-v1 training complete)
 
-        elapsed = time.time() - epoch_start
-        print(
-            f"epoch {epoch} done in {elapsed:.1f}s | train_loss {avg_train_loss:.4f} | "
-            f"val_loss {val_loss:.4f} | Lclk_acc {val_metrics.get('Lclk_acc', 0.0):.3f} "
-            f"m_x_acc {val_metrics.get('m_x_acc', 0.0):.3f} m_y_acc {val_metrics.get('m_y_acc', 0.0):.3f} "
-            f"wasd_acc {val_metrics.get('wasd_acc', 0.0):.3f} crit_mse {val_metrics.get('crit_mse', 0.0):.3f}"
-        )
+        # elapsed = time.time() - epoch_start
+        # print(
+        #     f"epoch {epoch} done in {elapsed:.1f}s | train_loss {avg_train_loss:.4f} | "
+        #     f"val_loss {val_loss:.4f} | Lclk_acc {val_metrics.get('Lclk_acc', 0.0):.3f} "
+        #     f"m_x_acc {val_metrics.get('m_x_acc', 0.0):.3f} m_y_acc {val_metrics.get('m_y_acc', 0.0):.3f} "
+        #     f"wasd_acc {val_metrics.get('wasd_acc', 0.0):.3f} crit_mse {val_metrics.get('crit_mse', 0.0):.3f}"
+        # )
 
-        # # Save checkpoint each epoch
-        ckpt_path = os.path.join(args.save_dir, f"{args.model_name}_epoch{epoch}.pt")
-        torch.save(
-            {
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'val_loss': val_loss,
-                'val_metrics': val_metrics,
-                'args': vars(args),
-            },
-            ckpt_path,
-        )
-        print(f"saved checkpoint: {ckpt_path}")
+        # # # Save checkpoint each epoch
+        # ckpt_path = os.path.join(args.save_dir, f"{args.model_name}_epoch{epoch}.pt")
+        # torch.save(
+        #     {
+        #         'epoch': epoch,
+        #         'model_state_dict': model.state_dict(),
+        #         'optimizer_state_dict': optimizer.state_dict(),
+        #         'val_loss': val_loss,
+        #         'val_metrics': val_metrics,
+        #         'args': vars(args),
+        #     },
+        #     ckpt_path,
+        # )
+        # print(f"saved checkpoint: {ckpt_path}")
 
-        # Track and save best
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
-            torch.save(model.state_dict(), best_path)
-            print(f"updated best model: {best_path}")
+        # # Track and save best
+        # if val_loss < best_val_loss:
+        #     best_val_loss = val_loss
+        #     best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
+        #     torch.save(model.state_dict(), best_path)
+        #     print(f"updated best model: {best_path}")
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train CSGO behavioral cloning model (PyTorch)")
     parser.add_argument('--model_name', type=str, default='default', help="Model configuration name (affects architecture)")
-    parser.add_argument('--batch_size', type=int, default=4, help="Batch size")
-    parser.add_argument('--epochs', type=int, default=4, help="Number of epochs")
+    parser.add_argument('--batch_size', type=int, default=1, help="Batch size")
+    parser.add_argument('--epochs', type=int, default=20, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--start_epoch', type=int, default=1, help="Start epoch (for resume)")
     parser.add_argument('--starting_num', type=int, default=2, help="Lowest file number to use")
-    parser.add_argument('--highest_num', type=int, default=190, help="Highest file number to use")
-    parser.add_argument('--n_jitter', type=int, default=20, help="Temporal jitter frames")
+    parser.add_argument('--highest_num', type=int, default=20, help="Highest file number to use")
+    parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
     parser.add_argument('--data_dir', type=str, default='/Users/vaibhav/Desktop/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
     parser.add_argument('--pretrained', action='store_true', help="Use pretrained EfficientNet weights")
+    parser.add_argument('--freeze_backbone', action='store_true', help="Freeze EfficientNet backbone params")
     parser.set_defaults(pretrained=True)
+<<<<<<< HEAD
     parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=50, help="Steps between logs")
     parser.add_argument('--mouse_sigma_x', type=float, default=1.5, help="Gaussian sigma for mouse X loss (default: 1.5)")
     parser.add_argument('--mouse_sigma_y', type=float, default=1.0, help="Gaussian sigma for mouse Y loss (default: 1.0)")
+=======
+    parser.set_defaults(freeze_backbone=False)
+    parser.add_argument('--num_workers', type=int, default=1, help="DataLoader workers")
+    parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
+>>>>>>> 7759da6 (model-v1 training complete)
     return parser.parse_args()
 
 
