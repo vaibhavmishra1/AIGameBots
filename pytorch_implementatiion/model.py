@@ -416,11 +416,11 @@ def create_model(
     """
     from config import (
         input_shape, n_keys, n_clicks, n_mouse_x, n_mouse_y,
-        aux_input_length as cfg_aux_len, AUX_INPUT_ON
+        aux_input_length as cfg_aux_len
     )
 
-    # If aux is enabled, use per-timestep previous action vector length
-    use_aux = aux_input_on or AUX_INPUT_ON
+    # If aux is enabled, use per-timestep previous action vector length (controlled by arg)
+    use_aux = bool(aux_input_on)
     action_dim = n_keys + n_clicks + n_mouse_x + n_mouse_y
     aux_len = action_dim if use_aux else cfg_aux_len
 
