@@ -328,7 +328,7 @@ def train(
     scaler = torch.cuda.amp.GradScaler(enabled=(device.type == 'cuda'))
 
     os.makedirs(args.save_dir, exist_ok=True)
-    best_val_loss = math.inf
+    best_loss = math.inf
 
     global_step = 0
     model.train()
@@ -365,7 +365,7 @@ def train(
                 )
                 print(msg)
 
-        # avg_train_loss = running_loss / max(running_batches, 1)
+        avg_train_loss = running_loss / max(running_batches, 1)
 
         # # Validation
         # val_loss, val_metrics = validate(model, val_loader, device)
@@ -385,20 +385,18 @@ def train(
         #         'epoch': epoch,
         #         'model_state_dict': model.state_dict(),
         #         'optimizer_state_dict': optimizer.state_dict(),
-        #         'val_loss': val_loss,
-        #         'val_metrics': val_metrics,
         #         'args': vars(args),
         #     },
         #     ckpt_path,
         # )
         # print(f"saved checkpoint: {ckpt_path}")
 
-        # # Track and save best
-        # if val_loss < best_val_loss:
-        #     best_val_loss = val_loss
-        #     best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
-        #     torch.save(model.state_dict(), best_path)
-        #     print(f"updated best model: {best_path}")
+        # Track and save best
+        if avg_train_loss < best_loss:
+            best_loss = avg_train_loss
+            best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
+            torch.save(model.state_dict(), best_path)
+            print(f"updated best model: {best_path}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -409,7 +407,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--start_epoch', type=int, default=1, help="Start epoch (for resume)")
     parser.add_argument('--starting_num', type=int, default=2, help="Lowest file number to use")
-    parser.add_argument('--highest_num', type=int, default=4, help="Highest file number to use")
+    parser.add_argument('--highest_num', type=int, default=190, help="Highest file number to use")
     parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
     parser.add_argument('--data_dir', type=str, default='/Users/vaibhav/Desktop/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
