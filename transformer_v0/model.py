@@ -150,6 +150,8 @@ class ViViTCSGOModel(nn.Module):
         patch_size: Tuple[int, int] = (10, 10),
         aux_input_length: int = 17,
         aux_input_on: bool = True,
+        pretrained: bool = False,
+        pretrained_model_name: Optional[str] = None,
     ):
         super().__init__()
 
@@ -161,6 +163,8 @@ class ViViTCSGOModel(nn.Module):
         self.patch_size = patch_size
         self.aux_input_length = aux_input_length
         self.aux_input_on = aux_input_on
+        self._use_pretrained = bool(pretrained)
+        self._pretrained_model_name = pretrained_model_name or 'vit_small_patch16_224'
 
         # Stateful controls
         self._stateful: bool = False
@@ -196,6 +200,10 @@ class ViViTCSGOModel(nn.Module):
 
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=-1)
+
+        # Optionally initialize spatial vision backbone from pretrained ViT
+        if self._use_pretrained:
+            self._init_from_vit_pretrained(self._pretrained_model_name)
 
     def _encode_frames_spatial(self, x_btchw: torch.Tensor) -> torch.Tensor:
         """
@@ -294,8 +302,8 @@ class ViViTCSGOModel(nn.Module):
         # Shared dense and heads
         shared = self.shared_dense(x_features)  # (B, T, 256)
 
-        keys_out = self.sigmoid(self.keys_output(shared))
-        clicks_out = self.sigmoid(self.clicks_output(shared))
+        keys_out = self.keys_output(shared)
+        clicks_out = self.clicks_output(shared)
         mouse_x_out = self.softmax(self.mouse_x_output(shared))
         mouse_y_out = self.softmax(self.mouse_y_output(shared))
         value_out = self.value_output(shared)
@@ -306,10 +314,117 @@ class ViViTCSGOModel(nn.Module):
         keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = self.forward(x, aux_input)
         return torch.cat([keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out], dim=-1)
 
+    def _init_from_vit_pretrained(self, timm_model_name: str) -> None:
+        """
+        Initialize patch embedding and spatial Transformer encoder from a pretrained ViT.
+        Uses timm to load weights and maps them into nn.TransformerEncoder layers.
+        Falls back gracefully if timm is unavailable or shapes do not match.
+        """
+        try:
+            import timm  # type: ignore
+        except Exception:
+            print("[ViViT] timm not installed; skipping pretrained ViT initialization", file=sys.stderr)
+            return
+
+        try:
+            vit = timm.create_model(timm_model_name, pretrained=True)
+        except Exception as e:
+            print(f"[ViViT] Failed to load timm model '{timm_model_name}': {e}", file=sys.stderr)
+            return
+
+        vit.eval()
+
+        with torch.no_grad():
+            # 1) Patch embedding projection
+            if hasattr(vit, 'patch_embed') and hasattr(vit.patch_embed, 'proj'):
+                src_proj = vit.patch_embed.proj
+                dst_proj = self.patch_embed.proj
+
+                src_w = src_proj.weight  # (out, in, kh, kw)
+                src_b = src_proj.bias
+                dst_w = dst_proj.weight
+
+                if src_w.shape[1] != dst_w.shape[1]:
+                    print("[ViViT] In-channels mismatch for patch embed; skipping patch init", file=sys.stderr)
+                else:
+                    # Resize kernel if patch sizes differ (e.g., 16 -> 10)
+                    if src_w.shape[2:] != dst_w.shape[2:]:
+                        try:
+                            resized = F.interpolate(src_w, size=dst_w.shape[2:], mode='bilinear', align_corners=False)
+                            src_w = resized
+                        except Exception as e:
+                            print(f"[ViViT] Patch kernel resize failed: {e}; skipping patch init", file=sys.stderr)
+                            src_w = None
+
+                    if src_w is not None and src_w.shape[0] == dst_w.shape[0]:
+                        dst_proj.weight.copy_(src_w)
+                        if (src_b is not None) and (dst_proj.bias is not None) and (src_b.shape == dst_proj.bias.shape):
+                            dst_proj.bias.copy_(src_b)
+                    else:
+                        print("[ViViT] Embed dim mismatch for patch embed; skipping patch init", file=sys.stderr)
+
+            # 2) Spatial encoder blocks (map first N ViT blocks)
+            blocks_src = getattr(vit, 'blocks', None)
+            if blocks_src is None:
+                print("[ViViT] timm ViT has no blocks; skipping spatial encoder init", file=sys.stderr)
+                return
+
+            layers_dst = self.spatial_encoder.encoder.layers
+            num_to_copy = min(len(blocks_src), len(layers_dst))
+            if num_to_copy == 0:
+                return
+
+            # Validate dims and heads via first block
+            try:
+                embed_dim_src = blocks_src[0].attn.qkv.weight.shape[1]
+                heads_src = int(blocks_src[0].attn.num_heads)
+            except Exception:
+                embed_dim_src = None
+                heads_src = None
+
+            if (embed_dim_src is not None and embed_dim_src != self.embed_dim) or (heads_src is not None and heads_src != self.nhead):
+                print("[ViViT] Encoder dim/heads mismatch; skipping spatial encoder init", file=sys.stderr)
+                return
+
+            for i in range(num_to_copy):
+                blk = blocks_src[i]
+                layer = layers_dst[i]
+
+                # Norms
+                try:
+                    layer.norm1.weight.copy_(blk.norm1.weight)
+                    layer.norm1.bias.copy_(blk.norm1.bias)
+                    layer.norm2.weight.copy_(blk.norm2.weight)
+                    layer.norm2.bias.copy_(blk.norm2.bias)
+                except Exception:
+                    pass
+
+                # Attention: map qkv and proj
+                try:
+                    qkv_w = blk.attn.qkv.weight  # (3D, D)
+                    qkv_b = blk.attn.qkv.bias    # (3D)
+                    layer.self_attn.in_proj_weight.copy_(qkv_w)
+                    layer.self_attn.in_proj_bias.copy_(qkv_b)
+                    layer.self_attn.out_proj.weight.copy_(blk.attn.proj.weight)
+                    layer.self_attn.out_proj.bias.copy_(blk.attn.proj.bias)
+                except Exception:
+                    pass
+
+                # MLP: fc1/fc2 -> linear1/linear2
+                try:
+                    layer.linear1.weight.copy_(blk.mlp.fc1.weight)
+                    layer.linear1.bias.copy_(blk.mlp.fc1.bias)
+                    layer.linear2.weight.copy_(blk.mlp.fc2.weight)
+                    layer.linear2.bias.copy_(blk.mlp.fc2.bias)
+                except Exception:
+                    pass
+
+        print(f"[ViViT] Loaded pretrained ViT weights from '{timm_model_name}' into patch embed and {num_to_copy} spatial blocks")
+
 
 def create_vivit_model(
     model_name: str = 'vivit_default',
-    pretrained: bool = False,  # kept for API parity; not used here
+    pretrained: bool = False,
     aux_input_on: bool = True,
     freeze_backbone: bool = False,  # kept for API parity; not used here
 ) -> ViViTCSGOModel:
@@ -320,15 +435,27 @@ def create_vivit_model(
     action_dim = n_keys + n_clicks + n_mouse_x + n_mouse_y
     aux_len = action_dim if aux_input_on else 17  # fallback to config default length
 
+    # Choose ViT pretrained backbone config when requested (defaults to ViT-S/16)
+    if pretrained:
+        vit_name = 'vit_small_patch16_224'
+        embed_dim = 384
+        nhead = 6
+    else:
+        vit_name = None
+        embed_dim = 512
+        nhead = 8
+
     model = ViViTCSGOModel(
         model_name=model_name,
-        embed_dim=512,
+        embed_dim=embed_dim,
         spatial_depth=4,
         temporal_depth=4,
-        nhead=8,
+        nhead=nhead,
         patch_size=(10, 10),
         aux_input_length=aux_len,
         aux_input_on=aux_input_on,
+        pretrained=pretrained,
+        pretrained_model_name=vit_name,
     )
 
     # No backbone params to freeze; kept for API compatibility

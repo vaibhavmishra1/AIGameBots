@@ -23,7 +23,7 @@ class CSGODataset(Dataset):
     def __init__(
         self,
         data_list: List[str],
-        folder_name: str = '/Users/vaibhav/Desktop/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/',
+        folder_name: str = '/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/',
         n_jitter: int = 20,
         is_mirror: bool = False,
         transform: bool = True

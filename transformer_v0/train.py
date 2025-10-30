@@ -27,8 +27,8 @@ from config import (
     GAMMA,
 )
 
-def bce_from_probs(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    return F.binary_cross_entropy(pred, target, reduction='mean')
+def bce_from_logits(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    return F.binary_cross_entropy_with_logits(logits, target, reduction='mean')
 
 def categorical_ce_from_probs(pred_probs: torch.Tensor, target_onehot: torch.Tensor) -> torch.Tensor:
     eps = 1e-8
@@ -56,13 +56,13 @@ def compute_custom_loss(
     mouse_y_true = y_true[:, :, idx_mouse_x_end:idx_mouse_y_end]
     reward_true = y_true[:, :, idx_reward:idx_reward + 1]
 
-    loss1a = bce_from_probs(keys_out[:, :, 0:4], keys_true[:, :, 0:4])
-    loss1b = bce_from_probs(keys_out[:, :, 4:5], keys_true[:, :, 4:5])
-    loss1c = bce_from_probs(keys_out[:, :, n_keys - 1:n_keys], keys_true[:, :, n_keys - 1:n_keys])
-    loss1d = bce_from_probs(keys_out[:, :, n_keys - 4:n_keys - 1], keys_true[:, :, n_keys - 4:n_keys - 1])
+    loss1a = bce_from_logits(keys_out[:, :, 0:4], keys_true[:, :, 0:4])
+    loss1b = bce_from_logits(keys_out[:, :, 4:5], keys_true[:, :, 4:5])
+    loss1c = bce_from_logits(keys_out[:, :, n_keys - 1:n_keys], keys_true[:, :, n_keys - 1:n_keys])
+    loss1d = bce_from_logits(keys_out[:, :, n_keys - 4:n_keys - 1], keys_true[:, :, n_keys - 4:n_keys - 1])
 
-    loss2a = bce_from_probs(clicks_out[:, :, 0:1], clicks_true[:, :, 0:1])
-    loss2b = bce_from_probs(clicks_out[:, :, 1:2], clicks_true[:, :, 1:2])
+    loss2a = bce_from_logits(clicks_out[:, :, 0:1], clicks_true[:, :, 0:1])
+    loss2b = bce_from_logits(clicks_out[:, :, 1:2], clicks_true[:, :, 1:2])
 
     ce_x = categorical_ce_from_probs(mouse_x_out, mouse_x_true)
     cdf_pred_x = torch.cumsum(mouse_x_out, dim=-1)
@@ -115,7 +115,7 @@ def compute_metrics(
     mouse_y_true = y_true[:, :, idx_mouse_x_end:idx_mouse_y_end]
     reward_true = y_true[:, :, idx_reward:idx_reward + 1]
 
-    lclk_pred = (clicks_out[:, :, 0:1] >= 0.5).float()
+    lclk_pred = (torch.sigmoid(clicks_out[:, :, 0:1]) >= 0.5).float()
     lclk_true = clicks_true[:, :, 0:1]
     lclk_acc = (lclk_pred == lclk_true).float().mean()
 
@@ -128,7 +128,7 @@ def compute_metrics(
     m_x_acc = (mx_pred == mx_true).float().mean()
     m_y_acc = (my_pred == my_true).float().mean()
 
-    wasd_pred = (keys_out[:, :, 0:4] >= 0.5).float()
+    wasd_pred = (torch.sigmoid(keys_out[:, :, 0:4]) >= 0.5).float()
     wasd_true = keys_true[:, :, 0:4]
     wasd_acc = (wasd_pred == wasd_true).float().mean()
 
@@ -247,18 +247,18 @@ def train(args: argparse.Namespace) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train ViViT CSGO behavioral cloning model")
     parser.add_argument('--model_name', type=str, default='vivit_default', help="Model configuration name")
-    parser.add_argument('--batch_size', type=int, default=1, help="Batch size")
+    parser.add_argument('--batch_size', type=int, default=8, help="Batch size")
     parser.add_argument('--epochs', type=int, default=20, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--starting_num', type=int, default=2, help="Lowest file number to use")
     parser.add_argument('--highest_num', type=int, default=190, help="Highest file number to use")
     parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
-    parser.add_argument('--data_dir', type=str, default='/Users/vaibhav/Desktop/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
+    parser.add_argument('--data_dir', type=str, default='/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
     parser.add_argument('--pretrained', action='store_true', help="Use pretrained weights (unused, kept for parity)")
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze backbone params (unused, parity)")
-    parser.set_defaults(pretrained=False)
+    parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
     parser.add_argument('--num_workers', type=int, default=1, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
