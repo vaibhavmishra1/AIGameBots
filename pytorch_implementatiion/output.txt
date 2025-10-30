@@ -1,0 +1,19 @@
+Using device: mps
+epoch 1 step 5 | loss 6.2892 | Lclk_acc 1.000 m_x_acc 0.573 m_y_acc 0.635 wasd_acc 0.896
+epoch 1 step 10 | loss 2.6413 | Lclk_acc 0.979 m_x_acc 0.729 m_y_acc 0.771 wasd_acc 0.945
+epoch 1 step 15 | loss 6.0976 | Lclk_acc 0.979 m_x_acc 0.010 m_y_acc 0.073 wasd_acc 0.589
+epoch 1 step 20 | loss 5.7889 | Lclk_acc 0.646 m_x_acc 0.052 m_y_acc 0.083 wasd_acc 0.779
+epoch 1 step 25 | loss 4.9803 | Lclk_acc 0.906 m_x_acc 0.281 m_y_acc 0.365 wasd_acc 0.820
+epoch 1 step 30 | loss 5.3763 | Lclk_acc 0.885 m_x_acc 0.312 m_y_acc 0.365 wasd_acc 0.818
+epoch 1 step 35 | loss 5.2530 | Lclk_acc 0.844 m_x_acc 0.260 m_y_acc 0.292 wasd_acc 0.833
+epoch 1 step 40 | loss 4.4448 | Lclk_acc 0.875 m_x_acc 0.406 m_y_acc 0.469 wasd_acc 0.888
+epoch 1 step 45 | loss 4.9520 | Lclk_acc 0.865 m_x_acc 0.260 m_y_acc 0.229 wasd_acc 0.768
+epoch 1 step 50 | loss 4.6968 | Lclk_acc 0.750 m_x_acc 0.281 m_y_acc 0.385 wasd_acc 0.841
+epoch 1 step 55 | loss 5.6423 | Lclk_acc 0.604 m_x_acc 0.146 m_y_acc 0.094 wasd_acc 0.760
+epoch 1 step 60 | loss 4.0434 | Lclk_acc 0.844 m_x_acc 0.427 m_y_acc 0.396 wasd_acc 0.820
+epoch 1 step 65 | loss 4.1799 | Lclk_acc 0.875 m_x_acc 0.385 m_y_acc 0.417 wasd_acc 0.797
+epoch 1 step 70 | loss 4.1511 | Lclk_acc 0.948 m_x_acc 0.458 m_y_acc 0.500 wasd_acc 0.755
+epoch 1 step 75 | loss 4.5105 | Lclk_acc 0.938 m_x_acc 0.208 m_y_acc 0.375 wasd_acc 0.742
+epoch 1 step 80 | loss 4.8478 | Lclk_acc 0.854 m_x_acc 0.229 m_y_acc 0.375 wasd_acc 0.844
+epoch 1 step 85 | loss 4.4013 | Lclk_acc 0.792 m_x_acc 0.354 m_y_acc 0.375 wasd_acc 0.865
+epoch 1 step 90 | loss 5.0331 | Lclk_acc 0.719 m_x_acc 0.250 m_y_acc 0.271 wasd_acc 0.797

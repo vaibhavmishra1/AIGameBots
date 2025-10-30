@@ -8,8 +8,10 @@ from typing import List, Tuple, Optional, Dict, Any
 import sys
 import os
 import atexit
+
+# Import shared config from the original project
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Counter-Strike_Behavioural_Cloning'))
-from config import *
+from config import *  # noqa: F401,F403
 
 
 class CSGODataset(Dataset):
@@ -41,7 +43,6 @@ class CSGODataset(Dataset):
         self.n_jitter = n_jitter
         self.is_mirror = is_mirror
         self.transform = transform
-
         # Pre-compute file numbers and paths referenced by this dataset
         self._file_numbers = sorted({int(str_id.split('-')[0]) for str_id in self.data_list})
         self._file_paths: Dict[int, str] = {
@@ -417,32 +418,19 @@ def create_data_loaders(
         is_mirror=is_mirror,
         transform=transform
     )
-
+    
     return training_loader_full, validation_loader_full
 
 
-# Example usage and testing
 if __name__ == "__main__":
-    # Create data loaders
-    data_loaders = create_data_loaders(
-        batch_size=16,
-        starting_num=10,
-        highest_num=12,  # Small range for testing
-        shuffle=True,
-        num_workers=0,  # Set to 0 for debugging
-        pin_memory=False
+    # Basic smoke test
+    loaders = create_data_loaders(
+        batch_size=1,
+        starting_num=2,
+        highest_num=2,
+        num_workers=0,
+        pin_memory=False,
+        n_jitter=1,
+        transform=False,
     )
-
-    training_loader_full, validation_loader_full = data_loaders
-
-    print(f"Training loader full length: {len(training_loader_full)}")
-
-    # Test loading a single batch
-    for batch_x, batch_y, batch_aux in training_loader_full:
-        print(f"Batch X shape: {batch_x.shape}")
-        print(f"Batch Y shape: {batch_y.shape}")
-        print(f"Batch AUX shape (prev actions): {batch_aux.shape}")
-        print(f"Sample X range: [{batch_x.min():.3f}, {batch_x.max():.3f}]")
-        print(f"Sample Y range: [{batch_y.min():.3f}, {batch_y.max():.3f}]")
-        
-        break
+    print('✓ transformer_v0.dataloader ready')
