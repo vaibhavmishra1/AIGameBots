@@ -247,7 +247,7 @@ def train(args: argparse.Namespace) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train ViViT CSGO behavioral cloning model")
     parser.add_argument('--model_name', type=str, default='vivit_default', help="Model configuration name")
-    parser.add_argument('--batch_size', type=int, default=8, help="Batch size")
+    parser.add_argument('--batch_size', type=int, default=12, help="Batch size")
     parser.add_argument('--epochs', type=int, default=20, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--starting_num', type=int, default=2, help="Lowest file number to use")
@@ -260,7 +260,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze backbone params (unused, parity)")
     parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
-    parser.add_argument('--num_workers', type=int, default=1, help="DataLoader workers")
+    parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
 
     # Toggle feeding previous actions as auxiliary input
