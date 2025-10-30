@@ -36,6 +36,86 @@ def categorical_ce_from_probs(pred_probs: torch.Tensor, target_onehot: torch.Ten
     loss = -(target_onehot * pred_probs.log()).sum(dim=-1)
     return loss.mean()
 
+
+def save_checkpoint(path: str,
+                    model: nn.Module,
+                    optimizer: torch.optim.Optimizer,
+                    scaler: torch.cuda.amp.GradScaler,
+                    epoch: int,
+                    global_step: int,
+                    best_loss: float,
+                    args: argparse.Namespace) -> None:
+    state = {
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'scaler_state_dict': scaler.state_dict(),
+        'epoch': epoch,
+        'global_step': global_step,
+        'best_loss': best_loss,
+        'args': vars(args),
+    }
+    torch.save(state, path)
+
+
+def try_load_checkpoint(path: str,
+                        model: nn.Module,
+                        optimizer: torch.optim.Optimizer,
+                        scaler: torch.cuda.amp.GradScaler,
+                        device: torch.device) -> Tuple[int, int, float]:
+    """
+    Load checkpoint (supports model-only .pt or full training state).
+    Returns (start_epoch, global_step, best_loss).
+    """
+    if not path or not os.path.isfile(path):
+        print(f"No checkpoint found at {path}, starting fresh")
+        return 1, 0, math.inf
+
+    print(f"Loading checkpoint: {path}")
+    ckpt = torch.load(path, map_location=device)
+
+    # Determine model state dict
+    if isinstance(ckpt, dict) and ('model_state_dict' in ckpt):
+        model_state = ckpt['model_state_dict']
+    elif isinstance(ckpt, dict) and ('state_dict' in ckpt):
+        model_state = ckpt['state_dict']
+    else:
+        # Assume raw state_dict saved via torch.save(model.state_dict(), ...)
+        model_state = ckpt
+
+    missing, unexpected = model.load_state_dict(model_state, strict=False)
+    if missing:
+        print(f"[resume] Missing keys in state_dict: {len(missing)}")
+    if unexpected:
+        print(f"[resume] Unexpected keys in state_dict: {len(unexpected)}")
+
+    start_epoch = 1
+    global_step = 0
+    best_loss = math.inf
+
+    if isinstance(ckpt, dict):
+        if 'optimizer_state_dict' in ckpt:
+            try:
+                optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+            except Exception as e:
+                print(f"[resume] Optimizer load failed: {e}")
+        if 'scaler_state_dict' in ckpt:
+            try:
+                scaler.load_state_dict(ckpt['scaler_state_dict'])
+            except Exception as e:
+                print(f"[resume] GradScaler load failed: {e}")
+        if 'epoch' in ckpt and isinstance(ckpt['epoch'], int):
+            start_epoch = int(ckpt['epoch']) + 1
+        if 'global_step' in ckpt and isinstance(ckpt['global_step'], int):
+            global_step = int(ckpt['global_step'])
+        if 'best_loss' in ckpt:
+            try:
+                best_loss = float(ckpt['best_loss'])
+            except Exception:
+                best_loss = math.inf
+
+    print(f"Resumed. Next epoch: {start_epoch}, global_step: {global_step}, best_loss: {best_loss}")
+    return start_epoch, global_step, best_loss
+
 def compute_custom_loss(
     outputs: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
     y_true: torch.Tensor,
@@ -191,8 +271,13 @@ def train(args: argparse.Namespace) -> None:
     best_loss = math.inf
 
     global_step = 0
+    start_epoch = 1
+
+    # Optionally resume
+    if getattr(args, 'resume', None):
+        start_epoch, global_step, best_loss = try_load_checkpoint(args.resume, model, optimizer, scaler, device)
     model.train()
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(start_epoch, args.epochs + 1):
         epoch_start = time.time()
         running_loss = 0.0
         running_batches = 0
@@ -236,11 +321,15 @@ def train(args: argparse.Namespace) -> None:
         #     f"wasd_acc {val_metrics.get('wasd_acc', 0.0):.3f} crit_mse {val_metrics.get('crit_mse', 0.0):.3f}"
         # )
 
+        # Save last checkpoint every epoch
+        last_path = os.path.join(args.save_dir, f"{args.model_name}_last.pt")
+        save_checkpoint(last_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
+
         # Track and save best
         if avg_train_loss < best_loss:
             best_loss = avg_train_loss
             best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
-            torch.save(model.state_dict(), best_path)
+            save_checkpoint(best_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
 
 
@@ -256,12 +345,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
     parser.add_argument('--data_dir', type=str, default='/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
-    parser.add_argument('--pretrained', action='store_true', help="Use pretrained weights (unused, kept for parity)")
+    parser.add_argument('--pretrained', action='store_true', help="Use pretrained ViT weights for spatial encoder")
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze backbone params (unused, parity)")
     parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
     parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
+    parser.add_argument('--resume', type=str, default='/root/AIGameBots/transformer_v0/checkpoints/vivit_default_best.pt', help="Path to checkpoint (.pt) to resume training from")
 
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()

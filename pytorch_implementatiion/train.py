@@ -34,7 +34,13 @@ def get_device() -> torch.device:
 
 
 def bce_from_probs(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-    return F.binary_cross_entropy(pred, target, reduction='mean')
+    # Compute BCE on probabilities in float32 with autocast disabled to avoid AMP runtime errors
+    # PyTorch recommends BCEWithLogits for autocast; however, the model outputs probabilities.
+    # Running this op in FP32 outside autocast keeps numerical stability and avoids the warning.
+    with torch.cuda.amp.autocast(enabled=False):
+        pred_f32 = pred.float()
+        target_f32 = target.float()
+        return F.binary_cross_entropy(pred_f32, target_f32, reduction='mean')
 
 
 def categorical_ce_from_probs(pred_probs: torch.Tensor, target_onehot: torch.Tensor) -> torch.Tensor:
@@ -402,21 +408,21 @@ def train(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train CSGO behavioral cloning model (PyTorch)")
     parser.add_argument('--model_name', type=str, default='default', help="Model configuration name (affects architecture)")
-    parser.add_argument('--batch_size', type=int, default=1, help="Batch size")
-    parser.add_argument('--epochs', type=int, default=20, help="Number of epochs")
+    parser.add_argument('--batch_size', type=int, default=8, help="Batch size")
+    parser.add_argument('--epochs', type=int, default=30, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--start_epoch', type=int, default=1, help="Start epoch (for resume)")
     parser.add_argument('--starting_num', type=int, default=2, help="Lowest file number to use")
     parser.add_argument('--highest_num', type=int, default=190, help="Highest file number to use")
     parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
-    parser.add_argument('--data_dir', type=str, default='/Users/vaibhav/Desktop/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
+    parser.add_argument('--data_dir', type=str, default='/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
     parser.add_argument('--pretrained', action='store_true', help="Use pretrained EfficientNet weights")
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze EfficientNet backbone params")
     parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
-    parser.add_argument('--num_workers', type=int, default=1, help="DataLoader workers")
+    parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
 
     # Toggle feeding previous actions as auxiliary input
