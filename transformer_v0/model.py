@@ -5,17 +5,15 @@ from typing import Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision.models as models
+from torchvision.models.vision_transformer import ViT_B_16_Weights
 
-# Import shared config values (shapes, counts)
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Counter-Strike_Behavioural_Cloning'))
-from config import (  # noqa: E402
-    N_TIMESTEPS,
-    input_shape,
-    n_keys,
-    n_clicks,
-    n_mouse_x,
-    n_mouse_y,
-)
+# Config values (from config.py)
+input_shape = (96, 150, 280, 3)  # (timesteps, height, width, channels)
+n_keys = 11      # keyboard outputs
+n_clicks = 2     # mouse buttons
+n_mouse_x = 23   # mouse x positions
+n_mouse_y = 15   # mouse y positions
 
 
 class TimeDistributed(nn.Module):
@@ -42,59 +40,6 @@ class TimeDistributed(nn.Module):
         return y
 
 
-class PatchEmbed2D(nn.Module):
-    """
-    2D Patch embedding using Conv2d.
-    Splits HxW image into (H/ps_h)*(W/ps_w) patches and projects to embed_dim.
-    """
-
-    def __init__(self, in_channels: int, embed_dim: int, patch_size: Tuple[int, int] = (10, 10)):
-        super().__init__()
-        self.patch_size = patch_size
-        self.proj = nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=embed_dim,
-            kernel_size=patch_size,
-            stride=patch_size,
-            padding=0,
-        )
-
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
-        # x: (B*T, C, H, W)
-        x = self.proj(x)  # (B*T, D, H', W')
-        b, d, hp, wp = x.shape
-        x = x.flatten(2).transpose(1, 2)  # (B*T, N_patches, D)
-        return x, hp, wp
-
-
-def _build_sincos_2d_position_embedding(height: int, width: int, dim: int, device: torch.device) -> torch.Tensor:
-    """
-    Create 2D sine-cosine positional embeddings of shape (1, height*width, dim).
-    """
-    assert dim % 4 == 0, "Embedding dim must be divisible by 4 for 2D sincos"
-    half_dim = dim // 2
-    dim_h = dim_w = half_dim
-
-    y = torch.arange(height, device=device).float()
-    x = torch.arange(width, device=device).float()
-    grid_y, grid_x = torch.meshgrid(y, x, indexing='ij')  # (H', W')
-
-    omega_h = torch.arange(dim_h // 2, device=device).float()
-    omega_h = 1.0 / (10000 ** (2 * omega_h / dim_h))
-    omega_w = torch.arange(dim_w // 2, device=device).float()
-    omega_w = 1.0 / (10000 ** (2 * omega_w / dim_w))
-
-    out_y = torch.einsum('hw,d->hwd', grid_y, omega_h)
-    out_x = torch.einsum('hw,d->hwd', grid_x, omega_w)
-
-    pos_y = torch.cat([out_y.sin(), out_y.cos()], dim=-1)  # (H', W', dim_h)
-    pos_x = torch.cat([out_x.sin(), out_x.cos()], dim=-1)  # (H', W', dim_w)
-
-    pos = torch.cat([pos_y, pos_x], dim=-1)  # (H', W', dim)
-    pos = pos.view(1, height * width, dim)
-    return pos
-
-
 def _build_sincos_1d_position_embedding(length: int, dim: int, device: torch.device) -> torch.Tensor:
     """
     Create 1D sine-cosine positional embeddings of shape (1, length, dim).
@@ -106,6 +51,43 @@ def _build_sincos_1d_position_embedding(length: int, dim: int, device: torch.dev
     pe[:, 0::2] = torch.sin(positions * div_term)
     pe[:, 1::2] = torch.cos(positions * div_term)
     return pe.unsqueeze(0)  # (1, L, D)
+
+
+class ViTFeatureExtractor(nn.Module):
+    """
+    Wrapper around torchvision ViT to extract features instead of classification.
+    Uses the [CLS] token output from the encoder as frame-level features.
+    """
+
+    def __init__(self):
+        super().__init__()
+        # Load pretrained ViT-B/16 (or None for no weights during testing)
+        try:
+            self.vit = models.vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1)
+        except Exception:
+            # Fallback to random weights if download fails
+            print("Warning: Could not load pretrained ViT weights, using random initialization")
+            self.vit = models.vit_b_16(weights=None)
+
+        # Remove the classification head to get features
+        self.vit.heads = nn.Identity()
+
+        # ViT expects (B, C, H, W) with H=W=224
+        self.expected_size = 224
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: (B*T, C, H, W) - batch of frames
+        Returns:
+            features: (B*T, 768) - [CLS] token features from ViT
+        """
+        # Resize to expected input size (224x224)
+        if x.shape[-1] != self.expected_size or x.shape[-2] != self.expected_size:
+            x = F.interpolate(x, size=(self.expected_size, self.expected_size), mode='bicubic', align_corners=False)
+
+        # Forward through ViT (output is [CLS] token: (B*T, 768))
+        return self.vit(x)
 
 
 class TransformerEncoder(nn.Module):
@@ -130,65 +112,44 @@ class TransformerEncoder(nn.Module):
 
 class ViViTCSGOModel(nn.Module):
     """
-    ViViT-style video transformer for CSGO action recognition.
+    Simplified ViViT model using pretrained PyTorch ViT for spatial encoding.
 
     Pipeline:
-      - Per-frame patch embedding (Conv2d with patch_size = 10x10)
-      - Per-frame spatial Transformer encoder over patch tokens
-      - Mean-pool tokens to obtain a frame embedding
-      - Temporal Transformer encoder over sequence of frame embeddings
+      - Use pretrained ViT-B/16 to extract features from each frame
+      - Temporal Transformer encoder over sequence of frame features
       - Shared MLP and per-timestep heads (keys, clicks, mouse_x, mouse_y, value)
     """
 
     def __init__(
         self,
-        model_name: str = 'vivit_default',
-        embed_dim: int = 512,
-        spatial_depth: int = 4,
-        temporal_depth: int = 4,
-        nhead: int = 8,
-        patch_size: Tuple[int, int] = (10, 10),
+        model_name: str = 'vivit_vitb16',
+        temporal_depth: int = 8,
         aux_input_length: int = 17,
         aux_input_on: bool = True,
-        pretrained: bool = False,
-        pretrained_model_name: Optional[str] = None,
     ):
         super().__init__()
 
         self.model_name = model_name
-        self.embed_dim = embed_dim
-        self.spatial_depth = spatial_depth
         self.temporal_depth = temporal_depth
-        self.nhead = nhead
-        self.patch_size = patch_size
         self.aux_input_length = aux_input_length
         self.aux_input_on = aux_input_on
-        self._use_pretrained = bool(pretrained)
-        self._pretrained_model_name = pretrained_model_name or 'vit_small_patch16_224'
 
-        # Stateful controls
-        self._stateful: bool = False
-        self._temporal_cache: Optional[torch.Tensor] = None  # (B, t_cached, D)
-
-        # Normalization buffers (ImageNet) matching EfficientNet path
-        self.register_buffer('imagenet_mean', torch.tensor([0.485, 0.456, 0.406]).view(1, 1, 3, 1, 1))
-        self.register_buffer('imagenet_std', torch.tensor([0.229, 0.224, 0.225]).view(1, 1, 3, 1, 1))
-
-        # Modules
-        self.patch_embed = PatchEmbed2D(in_channels=3, embed_dim=embed_dim, patch_size=patch_size)
-        self.spatial_encoder = TransformerEncoder(d_model=embed_dim, nhead=nhead, depth=spatial_depth, mlp_ratio=4.0, dropout=0.1)
-        self.temporal_encoder = TransformerEncoder(d_model=embed_dim, nhead=nhead, depth=temporal_depth, mlp_ratio=4.0, dropout=0.1)
+        # Pretrained ViT-B/16 for spatial feature extraction (768-dim features)
+        self.spatial_encoder = ViTFeatureExtractor()
+        print(self.spatial_encoder)
+        # Temporal transformer (768-dim input from ViT)
+        self.temporal_encoder = TransformerEncoder(
+            d_model=768, nhead=12, depth=temporal_depth, mlp_ratio=4.0, dropout=0.1
+        )
 
         # Heads and shared layers
         if self.aux_input_on:
             self.aux_dense = nn.Linear(aux_input_length, 256)
-            shared_in = 512 + 256  # temporal D + aux 256
+            shared_in = 768 + 256  # temporal D (768) + aux 256
         else:
             self.aux_dense = None
-            shared_in = 512
+            shared_in = 768
 
-        # If embed_dim != 512, project to 512 before heads to match downstream sizes
-        self.proj_to_head = nn.Linear(embed_dim, 512) if embed_dim != 512 else nn.Identity()
         self.shared_dense = nn.Linear(shared_in, 256)
 
         # Per-timestep heads
@@ -201,44 +162,26 @@ class ViViTCSGOModel(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=-1)
 
-        # Optionally initialize spatial vision backbone from pretrained ViT
-        if self._use_pretrained:
-            self._init_from_vit_pretrained(self._pretrained_model_name)
+        # Initialize weights properly for transformers
+        self._initialize_weights()
 
-    def _encode_frames_spatial(self, x_btchw: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            x_btchw: (B*T, C, H, W)
-        Returns:
-            frame_embeds: (B*T, D)
-        """
-        tokens, hp, wp = self.patch_embed(x_btchw)  # (B*T, Np, D)
-        pos = _build_sincos_2d_position_embedding(hp, wp, self.embed_dim, tokens.device)  # (1, Np, D)
-        tokens = tokens + pos
-        tokens = self.spatial_encoder(tokens)  # (B*T, Np, D)
-        frame_embeds = tokens.mean(dim=1)  # mean pool tokens -> (B*T, D)
-        return frame_embeds
+    def _initialize_weights(self):
+        """Initialize model weights using Xavier initialization for better convergence.
+        Preserves pretrained ViT weights and only initializes newly added layers."""
+        for name, module in self.named_modules():
+            # Skip ViT spatial encoder to preserve pretrained weights
+            if 'spatial_encoder' in name:
+                continue
 
-    def _encode_temporal(self, frame_seq: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            frame_seq: (B, T, D)
-        Returns:
-            temporal_out: (B, T, D)
-        """
-        b, t, d = frame_seq.shape
-        pos_t = _build_sincos_1d_position_embedding(t, d, frame_seq.device)  # (1, T, D)
-        x = frame_seq + pos_t
-        x = self.temporal_encoder(x)  # (B, T, D)
-        return x
-
-    def set_stateful(self, enabled: bool = True) -> None:
-        self._stateful = bool(enabled)
-        if not self._stateful:
-            self.reset_states()
-
-    def reset_states(self) -> None:
-        self._temporal_cache = None
+            if isinstance(module, nn.Linear):
+                # Xavier/Glorot initialization for linear layers
+                nn.init.xavier_uniform_(module.weight)
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0.0)
+            elif isinstance(module, nn.LayerNorm):
+                # Standard initialization for layer norm
+                nn.init.constant_(module.bias, 0.0)
+                nn.init.constant_(module.weight, 1.0)
 
     def forward(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, ...]:
         """
@@ -252,36 +195,19 @@ class ViViTCSGOModel(nn.Module):
         """
         b, t, h, w, c = x.shape
 
-        # Convert to (B, T, C, H, W) and normalize with ImageNet stats
+        # Convert to (B, T, C, H, W)
         if c == 3:
-            x = x.permute(0, 1, 4, 2, 3).contiguous()
-        x = (x - self.imagenet_mean) / self.imagenet_std  # (B, T, 3, H, W)
+            x = x.permute(0, 1, 4, 2, 3).contiguous()  # (B, T, 3, H, W)
 
-        # Spatial encoding per frame
-        x_btchw = x.view(b * t, c, h, w)
-        frame_bt = self._encode_frames_spatial(x_btchw)  # (B*T, D)
-        frame_seq = frame_bt.view(b, t, self.embed_dim)  # (B, T, D)
+        # Spatial encoding: extract features from each frame using ViT
+        x_btchw = x.view(b * t, 3, h, w)  # (B*T, 3, H, W)
+        frame_features = self.spatial_encoder(x_btchw)  # (B*T, 768)
+        frame_seq = frame_features.view(b, t, 768)  # (B, T, 768)
 
-        # Stateful cache management
-        if self._stateful:
-            if self._temporal_cache is None:
-                self._temporal_cache = frame_seq
-            else:
-                self._temporal_cache = torch.cat([self._temporal_cache, frame_seq], dim=1)
-                if self._temporal_cache.size(1) > N_TIMESTEPS:
-                    self._temporal_cache = self._temporal_cache[:, -N_TIMESTEPS:, :]
-            temporal_in = self._temporal_cache
-        else:
-            temporal_in = frame_seq
-
-        # Temporal encoding
-        temporal_out = self._encode_temporal(temporal_in)  # (B, T_eff, D)
-
-        # Project to head dimension and slice to the last t steps if stateful
-        temporal_out = self.proj_to_head(temporal_out)  # (B, T_eff, 512)
-        if temporal_out.size(1) != t:
-            # keep only the most recent t tokens to align heads per input length
-            temporal_out = temporal_out[:, -t:, :]
+        # Temporal encoding with positional embeddings
+        pos_t = _build_sincos_1d_position_embedding(t, 768, frame_seq.device)
+        temporal_in = frame_seq + pos_t  # (B, T, 768)
+        temporal_out = self.temporal_encoder(temporal_in)  # (B, T, 768)
 
         # Handle auxiliary input
         if self.aux_input_on and aux_input is not None:
@@ -295,15 +221,15 @@ class ViViTCSGOModel(nn.Module):
                 aux_features = aux_proj.view(b2, t2, 256)
             else:
                 raise ValueError("aux_input must have shape (batch, aux_dim) or (batch, timesteps, aux_dim)")
-            x_features = torch.cat([temporal_out, aux_features], dim=-1)
+            x_features = torch.cat([temporal_out, aux_features], dim=-1)  # (B, T, 768+256)
         else:
-            x_features = temporal_out
+            x_features = temporal_out  # (B, T, 768)
 
         # Shared dense and heads
         shared = self.shared_dense(x_features)  # (B, T, 256)
 
-        keys_out = self.keys_output(shared)
-        clicks_out = self.clicks_output(shared)
+        keys_out = self.sigmoid(self.keys_output(shared))
+        clicks_out = self.sigmoid(self.clicks_output(shared))
         mouse_x_out = self.softmax(self.mouse_x_output(shared))
         mouse_y_out = self.softmax(self.mouse_y_output(shared))
         value_out = self.value_output(shared)
@@ -314,153 +240,25 @@ class ViViTCSGOModel(nn.Module):
         keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = self.forward(x, aux_input)
         return torch.cat([keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out], dim=-1)
 
-    def _init_from_vit_pretrained(self, timm_model_name: str) -> None:
-        """
-        Initialize patch embedding and spatial Transformer encoder from a pretrained ViT.
-        Uses timm to load weights and maps them into nn.TransformerEncoder layers.
-        Falls back gracefully if timm is unavailable or shapes do not match.
-        """
-        try:
-            import timm  # type: ignore
-        except Exception:
-            print("[ViViT] timm not installed; skipping pretrained ViT initialization", file=sys.stderr)
-            return
-
-        try:
-            vit = timm.create_model(timm_model_name, pretrained=True)
-        except Exception as e:
-            print(f"[ViViT] Failed to load timm model '{timm_model_name}': {e}", file=sys.stderr)
-            return
-
-        vit.eval()
-
-        with torch.no_grad():
-            # 1) Patch embedding projection
-            if hasattr(vit, 'patch_embed') and hasattr(vit.patch_embed, 'proj'):
-                src_proj = vit.patch_embed.proj
-                dst_proj = self.patch_embed.proj
-
-                src_w = src_proj.weight  # (out, in, kh, kw)
-                src_b = src_proj.bias
-                dst_w = dst_proj.weight
-
-                if src_w.shape[1] != dst_w.shape[1]:
-                    print("[ViViT] In-channels mismatch for patch embed; skipping patch init", file=sys.stderr)
-                else:
-                    # Resize kernel if patch sizes differ (e.g., 16 -> 10)
-                    if src_w.shape[2:] != dst_w.shape[2:]:
-                        try:
-                            resized = F.interpolate(src_w, size=dst_w.shape[2:], mode='bilinear', align_corners=False)
-                            src_w = resized
-                        except Exception as e:
-                            print(f"[ViViT] Patch kernel resize failed: {e}; skipping patch init", file=sys.stderr)
-                            src_w = None
-
-                    if src_w is not None and src_w.shape[0] == dst_w.shape[0]:
-                        dst_proj.weight.copy_(src_w)
-                        if (src_b is not None) and (dst_proj.bias is not None) and (src_b.shape == dst_proj.bias.shape):
-                            dst_proj.bias.copy_(src_b)
-                    else:
-                        print("[ViViT] Embed dim mismatch for patch embed; skipping patch init", file=sys.stderr)
-
-            # 2) Spatial encoder blocks (map first N ViT blocks)
-            blocks_src = getattr(vit, 'blocks', None)
-            if blocks_src is None:
-                print("[ViViT] timm ViT has no blocks; skipping spatial encoder init", file=sys.stderr)
-                return
-
-            layers_dst = self.spatial_encoder.encoder.layers
-            num_to_copy = min(len(blocks_src), len(layers_dst))
-            if num_to_copy == 0:
-                return
-
-            # Validate dims and heads via first block
-            try:
-                embed_dim_src = blocks_src[0].attn.qkv.weight.shape[1]
-                heads_src = int(blocks_src[0].attn.num_heads)
-            except Exception:
-                embed_dim_src = None
-                heads_src = None
-
-            if (embed_dim_src is not None and embed_dim_src != self.embed_dim) or (heads_src is not None and heads_src != self.nhead):
-                print("[ViViT] Encoder dim/heads mismatch; skipping spatial encoder init", file=sys.stderr)
-                return
-
-            for i in range(num_to_copy):
-                blk = blocks_src[i]
-                layer = layers_dst[i]
-
-                # Norms
-                try:
-                    layer.norm1.weight.copy_(blk.norm1.weight)
-                    layer.norm1.bias.copy_(blk.norm1.bias)
-                    layer.norm2.weight.copy_(blk.norm2.weight)
-                    layer.norm2.bias.copy_(blk.norm2.bias)
-                except Exception:
-                    pass
-
-                # Attention: map qkv and proj
-                try:
-                    qkv_w = blk.attn.qkv.weight  # (3D, D)
-                    qkv_b = blk.attn.qkv.bias    # (3D)
-                    layer.self_attn.in_proj_weight.copy_(qkv_w)
-                    layer.self_attn.in_proj_bias.copy_(qkv_b)
-                    layer.self_attn.out_proj.weight.copy_(blk.attn.proj.weight)
-                    layer.self_attn.out_proj.bias.copy_(blk.attn.proj.bias)
-                except Exception:
-                    pass
-
-                # MLP: fc1/fc2 -> linear1/linear2
-                try:
-                    layer.linear1.weight.copy_(blk.mlp.fc1.weight)
-                    layer.linear1.bias.copy_(blk.mlp.fc1.bias)
-                    layer.linear2.weight.copy_(blk.mlp.fc2.weight)
-                    layer.linear2.bias.copy_(blk.mlp.fc2.bias)
-                except Exception:
-                    pass
-
-        print(f"[ViViT] Loaded pretrained ViT weights from '{timm_model_name}' into patch embed and {num_to_copy} spatial blocks")
-
 
 def create_vivit_model(
-    model_name: str = 'vivit_default',
-    pretrained: bool = False,
+    model_name: str = 'vivit_vitb16',
     aux_input_on: bool = True,
-    freeze_backbone: bool = False,  # kept for API parity; not used here
+    temporal_depth: int = 8,
 ) -> ViViTCSGOModel:
     """
-    Factory to create ViViTCSGOModel with config-driven I/O sizes.
+    Factory to create ViViTCSGOModel with pretrained ViT-B/16 spatial encoder.
     """
-    # Determine aux_input_length: if aux is enabled, prefer previous action dimension
+    # Determine aux_input_length: if aux is enabled, use previous action dimension
     action_dim = n_keys + n_clicks + n_mouse_x + n_mouse_y
     aux_len = action_dim if aux_input_on else 17  # fallback to config default length
 
-    # Choose ViT pretrained backbone config when requested (defaults to ViT-S/16)
-    if pretrained:
-        vit_name = 'vit_small_patch16_224'
-        embed_dim = 384
-        nhead = 6
-    else:
-        vit_name = None
-        embed_dim = 512
-        nhead = 8
-
     model = ViViTCSGOModel(
         model_name=model_name,
-        embed_dim=embed_dim,
-        spatial_depth=4,
-        temporal_depth=4,
-        nhead=nhead,
-        patch_size=(10, 10),
+        temporal_depth=temporal_depth,
         aux_input_length=aux_len,
         aux_input_on=aux_input_on,
-        pretrained=pretrained,
-        pretrained_model_name=vit_name,
     )
-
-    # No backbone params to freeze; kept for API compatibility
-    for p in model.parameters():
-        p.requires_grad = True
 
     return model
 

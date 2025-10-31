@@ -30,6 +30,15 @@ from config import (
 def bce_from_logits(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return F.binary_cross_entropy_with_logits(logits, target, reduction='mean')
 
+def bce_from_probs(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    # Compute BCE on probabilities in float32 with autocast disabled to avoid AMP runtime errors
+    # PyTorch recommends BCEWithLogits for autocast; however, the model outputs probabilities.
+    # Running this op in FP32 outside autocast keeps numerical stability and avoids the warning.
+    with torch.cuda.amp.autocast(enabled=False):
+        pred_f32 = pred.float()
+        target_f32 = target.float()
+        return F.binary_cross_entropy(pred_f32, target_f32, reduction='mean')
+
 def categorical_ce_from_probs(pred_probs: torch.Tensor, target_onehot: torch.Tensor) -> torch.Tensor:
     eps = 1e-8
     pred_probs = pred_probs.clamp(min=eps, max=1.0)
@@ -41,6 +50,7 @@ def save_checkpoint(path: str,
                     model: nn.Module,
                     optimizer: torch.optim.Optimizer,
                     scaler: torch.cuda.amp.GradScaler,
+                    scheduler: torch.optim.lr_scheduler._LRScheduler,
                     epoch: int,
                     global_step: int,
                     best_loss: float,
@@ -49,6 +59,7 @@ def save_checkpoint(path: str,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'scaler_state_dict': scaler.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict(),
         'epoch': epoch,
         'global_step': global_step,
         'best_loss': best_loss,
@@ -61,6 +72,7 @@ def try_load_checkpoint(path: str,
                         model: nn.Module,
                         optimizer: torch.optim.Optimizer,
                         scaler: torch.cuda.amp.GradScaler,
+                        scheduler: torch.optim.lr_scheduler._LRScheduler,
                         device: torch.device) -> Tuple[int, int, float]:
     """
     Load checkpoint (supports model-only .pt or full training state).
@@ -103,6 +115,11 @@ def try_load_checkpoint(path: str,
                 scaler.load_state_dict(ckpt['scaler_state_dict'])
             except Exception as e:
                 print(f"[resume] GradScaler load failed: {e}")
+        if 'scheduler_state_dict' in ckpt:
+            try:
+                scheduler.load_state_dict(ckpt['scheduler_state_dict'])
+            except Exception as e:
+                print(f"[resume] Scheduler load failed: {e}")
         if 'epoch' in ckpt and isinstance(ckpt['epoch'], int):
             start_epoch = int(ckpt['epoch']) + 1
         if 'global_step' in ckpt and isinstance(ckpt['global_step'], int):
@@ -136,34 +153,43 @@ def compute_custom_loss(
     mouse_y_true = y_true[:, :, idx_mouse_x_end:idx_mouse_y_end]
     reward_true = y_true[:, :, idx_reward:idx_reward + 1]
 
-    loss1a = bce_from_logits(keys_out[:, :, 0:4], keys_true[:, :, 0:4])
-    loss1b = bce_from_logits(keys_out[:, :, 4:5], keys_true[:, :, 4:5])
-    loss1c = bce_from_logits(keys_out[:, :, n_keys - 1:n_keys], keys_true[:, :, n_keys - 1:n_keys])
-    loss1d = bce_from_logits(keys_out[:, :, n_keys - 4:n_keys - 1], keys_true[:, :, n_keys - 4:n_keys - 1])
+    loss1a = bce_from_probs(keys_out[:, :, 0:4], keys_true[:, :, 0:4])
+    loss1b = bce_from_probs(keys_out[:, :, 4:5], keys_true[:, :, 4:5])
+    loss1c = bce_from_probs(keys_out[:, :, n_keys - 1:n_keys], keys_true[:, :, n_keys - 1:n_keys])
+    loss1d = bce_from_probs(keys_out[:, :, n_keys - 4:n_keys - 1], keys_true[:, :, n_keys - 4:n_keys - 1])
 
-    loss2a = bce_from_logits(clicks_out[:, :, 0:1], clicks_true[:, :, 0:1])
-    loss2b = bce_from_logits(clicks_out[:, :, 1:2], clicks_true[:, :, 1:2])
+    loss2a = bce_from_probs(clicks_out[:, :, 0:1], clicks_true[:, :, 0:1])
+    loss2b = bce_from_probs(clicks_out[:, :, 1:2], clicks_true[:, :, 1:2])
 
+    # 3) Mouse X mixed loss: CE + normalized EMD (Wasserstein-1) with uniform bins
+    # Cross-entropy component
     ce_x = categorical_ce_from_probs(mouse_x_out, mouse_x_true)
+    # EMD component (normalize across classes to stabilize scale)
     cdf_pred_x = torch.cumsum(mouse_x_out, dim=-1)
     cdf_true_x = torch.cumsum(mouse_x_true, dim=-1)
     emd_x = (cdf_pred_x - cdf_true_x).abs().mean(dim=-1).mean()
+    # Blend: keep CE dominant initially
     alpha = 0.2
     loss3 = alpha * emd_x + (1.0 - alpha) * ce_x
-
+    # Mouse Y mixed loss: CE + normalized EMD (Wasserstein-1) with uniform bins
     ce_y = categorical_ce_from_probs(mouse_y_out, mouse_y_true)
     cdf_pred_y = torch.cumsum(mouse_y_out, dim=-1)
     cdf_true_y = torch.cumsum(mouse_y_true, dim=-1)
     emd_y = (cdf_pred_y - cdf_true_y).abs().mean(dim=-1).mean()
     loss4 = alpha * emd_y + (1.0 - alpha) * ce_y
 
-    v_t = value_out[:, :-1, :]
-    v_tp1 = value_out[:, 1:, :]
-    r_t = reward_true[:, :-1, :]
+    # 4) Critic loss: 10 * MSE( reward_t + gamma * v_{t+1} - v_t ) over consecutive timesteps
+    v_t = value_out[:, :-1, :]  # [B, T-1, 1]
+    v_tp1 = value_out[:, 1:, :]  # [B, T-1, 1]
+    r_t = reward_true[:, :-1, :]  # [B, T-1, 1]
     td_target = r_t + GAMMA * v_tp1
     loss_crit = 10.0 * F.mse_loss(v_t, td_target, reduction='mean')
 
-    total_loss = loss1a + loss1b + loss1c + loss1d + loss2a + loss2b + loss3 + loss4
+    total_loss = loss1a + loss1b + loss1c + loss1d + loss2a + loss2b + loss3 + loss4  # + loss_crit
+
+    # Apply loss scaling if specified (helps with training stability)
+    if hasattr(args, 'loss_scale') and args.loss_scale != 1.0:
+        total_loss = total_loss * args.loss_scale
     parts = {
         'loss_keys_wasd': float(loss1a.detach().cpu().item()),
         'loss_keys_space': float(loss1b.detach().cpu().item()),
@@ -176,6 +202,64 @@ def compute_custom_loss(
         'loss_critic': float(loss_crit.detach().cpu().item()),
     }
     return total_loss, parts
+
+def validate(
+    model: nn.Module,
+    val_loader: torch.utils.data.DataLoader,
+    device: torch.device,
+) -> Tuple[float, Dict[str, float]]:
+    """
+    Run validation on the model.
+
+    Args:
+        model: The model to validate
+        val_loader: Validation data loader
+        device: Device to run validation on
+
+    Returns:
+        Tuple of (validation_loss, validation_metrics)
+    """
+    model.eval()
+    val_loss = 0.0
+    val_metrics = {
+        'Lclk_acc': 0.0,
+        'no_fire': 0.0,
+        'm_x_acc': 0.0,
+        'm_y_acc': 0.0,
+        'wasd_acc': 0.0,
+        'crit_mse': 0.0,
+    }
+
+    num_batches = 0
+
+    with torch.no_grad():
+        for batch_x, batch_y, batch_aux in val_loader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
+            batch_aux = batch_aux.to(device)
+
+            # Forward pass
+            outputs = model(batch_x, aux_input=batch_aux)
+            loss, _ = compute_custom_loss(outputs, batch_y)
+
+            # Accumulate loss
+            val_loss += float(loss.detach().cpu().item())
+
+            # Accumulate metrics
+            batch_metrics = compute_metrics(outputs, batch_y)
+            for key in val_metrics:
+                val_metrics[key] += batch_metrics[key]
+
+            num_batches += 1
+
+    # Average over all validation batches
+    val_loss /= max(num_batches, 1)
+    for key in val_metrics:
+        val_metrics[key] /= max(num_batches, 1)
+
+    model.train()
+    return val_loss, val_metrics
+
 
 def compute_metrics(
     outputs: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
@@ -257,14 +341,59 @@ def train(args: argparse.Namespace) -> None:
     # Model
     model = create_vivit_model(
         model_name=args.model_name,
-        pretrained=args.pretrained,
         aux_input_on=args.use_prev_actions,
-        freeze_backbone=args.freeze_backbone,
+        temporal_depth=args.temporal_depth
     )
     model.to(device)
 
-    # Optimizer
-    optimizer = torch.optim.Adam((p for p in model.parameters() if p.requires_grad), lr=args.lr)
+    # Separate parameters for different learning rates
+    # ViT backbone parameters (pretrained)
+    vit_params = []
+    # Temporal transformer and heads (newly trained)
+    temporal_params = []
+    # Auxiliary input layers
+    aux_params = []
+
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            if 'spatial_encoder' in name or 'patch_embed' in name:
+                vit_params.append(param)
+            elif 'aux_dense' in name:
+                aux_params.append(param)
+            else:
+                temporal_params.append(param)
+
+    # Different learning rates for different components
+    base_lr = args.lr
+    param_groups = [
+        {'params': vit_params, 'lr': base_lr * args.backbone_lr_factor, 'weight_decay': args.weight_decay, 'name': 'vit_backbone'},
+        {'params': temporal_params, 'lr': base_lr, 'weight_decay': args.weight_decay, 'name': 'temporal_head'},
+        {'params': aux_params, 'lr': base_lr * args.aux_lr_factor, 'weight_decay': args.weight_decay, 'name': 'auxiliary'},
+    ]
+
+    # Filter out empty parameter groups
+    param_groups = [group for group in param_groups if group['params']]
+
+    # Use AdamW optimizer (better for transformers)
+    optimizer = torch.optim.AdamW(param_groups, betas=(0.9, 0.999), eps=1e-8)
+
+    # Learning rate scheduler with warmup and cosine annealing
+    if args.warmup_steps > 0:
+        from torch.optim.lr_scheduler import SequentialLR, LinearLR, CosineAnnealingLR
+
+        # Warmup phase: linear increase from very low to base_lr
+        warmup_scheduler = LinearLR(optimizer, start_factor=args.warmup_start_factor, end_factor=1.0, total_iters=args.warmup_steps)
+
+        # Main scheduler: cosine annealing
+        main_scheduler = CosineAnnealingLR(optimizer, T_max=args.epochs - args.warmup_epochs, eta_min=args.min_lr)
+
+        # Combine warmup and main scheduler
+        scheduler = SequentialLR(optimizer, [warmup_scheduler, main_scheduler], milestones=[args.warmup_steps])
+    else:
+        # No warmup: just cosine annealing
+        from torch.optim.lr_scheduler import CosineAnnealingLR
+        scheduler = CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=args.min_lr)
+
     scaler = torch.cuda.amp.GradScaler(enabled=(device.type == 'cuda'))
 
     os.makedirs(args.save_dir, exist_ok=True)
@@ -275,7 +404,7 @@ def train(args: argparse.Namespace) -> None:
 
     # Optionally resume
     if getattr(args, 'resume', None):
-        start_epoch, global_step, best_loss = try_load_checkpoint(args.resume, model, optimizer, scaler, device)
+        start_epoch, global_step, best_loss = try_load_checkpoint(args.resume, model, optimizer, scaler, scheduler, device)
     model.train()
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_start = time.time()
@@ -288,11 +417,16 @@ def train(args: argparse.Namespace) -> None:
             batch_aux = batch_aux.to(device)
 
             optimizer.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast(enabled=(device.type == 'cuda')):
+            with torch.amp.autocast('cuda', enabled=(device.type == 'cuda')):
                 outputs = model(batch_x, aux_input=(batch_aux if args.use_prev_actions else None))
                 loss, loss_parts = compute_custom_loss(outputs, batch_y)
 
             scaler.scale(loss).backward()
+
+            # Gradient clipping to prevent exploding gradients
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+
             scaler.step(optimizer)
             scaler.update()
 
@@ -311,58 +445,70 @@ def train(args: argparse.Namespace) -> None:
 
         avg_train_loss = running_loss / max(running_batches, 1)
 
-        # Validation (optional, can enable when desired)
-        # val_loss, val_metrics = validate(model, val_loader, device)
-        # elapsed = time.time() - epoch_start
-        # print(
-        #     f"epoch {epoch} done in {elapsed:.1f}s | train_loss {avg_train_loss:.4f} | "
-        #     f"val_loss {val_loss:.4f} | Lclk_acc {val_metrics.get('Lclk_acc', 0.0):.3f} "
-        #     f"m_x_acc {val_metrics.get('m_x_acc', 0.0):.3f} m_y_acc {val_metrics.get('m_y_acc', 0.0):.3f} "
-        #     f"wasd_acc {val_metrics.get('wasd_acc', 0.0):.3f} crit_mse {val_metrics.get('crit_mse', 0.0):.3f}"
-        # )
+        # Step the learning rate scheduler
+        scheduler.step()
+
+        # Log current learning rates
+        current_lrs = [f"{group['name']}: {group['lr']:.6f}" for group in optimizer.param_groups if group['params']]
+        lr_info = f" | LR: {', '.join(current_lrs)}"
+
+        # Validation
+        val_loss, val_metrics = validate(model, val_loader, device)
+        elapsed = time.time() - epoch_start
+        print(
+            f"epoch {epoch} done in {elapsed:.1f}s | train_loss {avg_train_loss:.4f} | "
+            f"val_loss {val_loss:.4f} | Lclk_acc {val_metrics['Lclk_acc']:.3f} "
+            f"m_x_acc {val_metrics['m_x_acc']:.3f} m_y_acc {val_metrics['m_y_acc']:.3f} "
+            f"wasd_acc {val_metrics['wasd_acc']:.3f} crit_mse {val_metrics['crit_mse']:.3f}{lr_info}"
+        )
 
         # Save last checkpoint every epoch
         last_path = os.path.join(args.save_dir, f"{args.model_name}_last.pt")
-        save_checkpoint(last_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
+        save_checkpoint(last_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
 
         # Track and save best
         if avg_train_loss < best_loss:
             best_loss = avg_train_loss
             best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
-            save_checkpoint(best_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
+            save_checkpoint(best_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train ViViT CSGO behavioral cloning model")
-    parser.add_argument('--model_name', type=str, default='vivit_default', help="Model configuration name")
-    parser.add_argument('--batch_size', type=int, default=12, help="Batch size")
+    parser.add_argument('--model_name', type=str, default='vivit_vitb16', help="Model configuration name")
+    parser.add_argument('--batch_size', type=int, default=1, help="Batch size")
     parser.add_argument('--epochs', type=int, default=20, help="Number of epochs")
-    parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
+    parser.add_argument('--lr', type=float, default=1e-4, help="Base learning rate")
+    parser.add_argument('--weight_decay', type=float, default=0.05, help="Weight decay for AdamW")
+    parser.add_argument('--backbone_lr_factor', type=float, default=0.1, help="Learning rate factor for ViT backbone")
+    parser.add_argument('--aux_lr_factor', type=float, default=1.0, help="Learning rate factor for auxiliary layers")
+    parser.add_argument('--warmup_steps', type=int, default=500, help="Number of warmup steps")
+    parser.add_argument('--warmup_start_factor', type=float, default=1e-8, help="Warmup start factor (initial LR multiplier)")
+    parser.add_argument('--warmup_epochs', type=int, default=5, help="Number of warmup epochs (for scheduler)")
+    parser.add_argument('--min_lr', type=float, default=1e-6, help="Minimum learning rate for cosine annealing")
+    parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm for clipping")
+    parser.add_argument('--loss_scale', type=float, default=1.0, help="Loss scaling factor for training stability")
     parser.add_argument('--starting_num', type=int, default=2, help="Lowest file number to use")
     parser.add_argument('--highest_num', type=int, default=190, help="Highest file number to use")
     parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
-    parser.add_argument('--data_dir', type=str, default='/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
+    parser.add_argument('--data_dir', type=str, default='/Users/vaibhav/Desktop/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
     parser.add_argument('--pretrained', action='store_true', help="Use pretrained ViT weights for spatial encoder")
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze backbone params (unused, parity)")
     parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
-    parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
+    parser.add_argument('--num_workers', type=int, default=1, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
-    parser.add_argument('--resume', type=str, default='/root/AIGameBots/transformer_v0/checkpoints/vivit_default_best.pt', help="Path to checkpoint (.pt) to resume training from")
-
+    parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
+    parser.add_argument('--temporal_depth', type=int, default=2, help="Temporal depth")
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--use_prev_actions', dest='use_prev_actions', action='store_true', help="Feed previous actions as auxiliary input")
     group.add_argument('--no_prev_actions', dest='use_prev_actions', action='store_false', help="Disable feeding previous actions as auxiliary input")
-    parser.set_defaults(use_prev_actions=True)
+    parser.set_defaults(use_prev_actions=False)
     return parser.parse_args()
-
 
 if __name__ == '__main__':
     args = parse_args()
     train(args)
-
-
