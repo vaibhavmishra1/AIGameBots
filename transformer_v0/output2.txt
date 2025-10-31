@@ -1,0 +1,7 @@
+Using device: cuda
+epoch 1 step 5 | loss 8.8648 | Lclk_acc 0.084 m_x_acc 0.265 m_y_acc 0.406 wasd_acc 0.231
+epoch 1 step 10 | loss 8.4523 | Lclk_acc 0.109 m_x_acc 0.032 m_y_acc 0.071 wasd_acc 0.216
+epoch 1 step 15 | loss 5.2023 | Lclk_acc 0.106 m_x_acc 0.176 m_y_acc 0.407 wasd_acc 0.206
+epoch 1 step 20 | loss 4.6987 | Lclk_acc 0.085 m_x_acc 0.343 m_y_acc 0.447 wasd_acc 0.212
+epoch 1 step 25 | loss 4.4792 | Lclk_acc 0.084 m_x_acc 0.332 m_y_acc 0.447 wasd_acc 0.223
+epoch 1 step 30 | loss 4.5002 | Lclk_acc 0.104 m_x_acc 0.302 m_y_acc 0.463 wasd_acc 0.217

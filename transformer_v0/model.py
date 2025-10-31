@@ -104,7 +104,8 @@ class TransformerEncoder(nn.Module):
             batch_first=True,
             norm_first=True,
         )
-        self.encoder = nn.TransformerEncoder(layer, num_layers=depth)
+        # Apply a final LayerNorm after the stack for stability
+        self.encoder = nn.TransformerEncoder(layer, num_layers=depth, norm=nn.LayerNorm(d_model))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x)
@@ -126,6 +127,7 @@ class ViViTCSGOModel(nn.Module):
         temporal_depth: int = 8,
         aux_input_length: int = 17,
         aux_input_on: bool = True,
+        freeze_backbone: bool = False,
     ):
         super().__init__()
 
@@ -133,14 +135,21 @@ class ViViTCSGOModel(nn.Module):
         self.temporal_depth = temporal_depth
         self.aux_input_length = aux_input_length
         self.aux_input_on = aux_input_on
+        self.freeze_backbone = freeze_backbone
 
         # Pretrained ViT-B/16 for spatial feature extraction (768-dim features)
         self.spatial_encoder = ViTFeatureExtractor()
-        print(self.spatial_encoder)
+
+        if self.freeze_backbone:
+            for param in self.spatial_encoder.parameters():
+                param.requires_grad = False
+
         # Temporal transformer (768-dim input from ViT)
         self.temporal_encoder = TransformerEncoder(
             d_model=768, nhead=12, depth=temporal_depth, mlp_ratio=4.0, dropout=0.1
         )
+        # Normalize temporal inputs (features + positional encoding) before the transformer
+        self.temporal_input_norm = nn.LayerNorm(768)
 
         # Heads and shared layers
         if self.aux_input_on:
@@ -206,7 +215,7 @@ class ViViTCSGOModel(nn.Module):
 
         # Temporal encoding with positional embeddings
         pos_t = _build_sincos_1d_position_embedding(t, 768, frame_seq.device)
-        temporal_in = frame_seq + pos_t  # (B, T, 768)
+        temporal_in = self.temporal_input_norm(frame_seq + pos_t)  # (B, T, 768)
         temporal_out = self.temporal_encoder(temporal_in)  # (B, T, 768)
 
         # Handle auxiliary input
@@ -245,6 +254,7 @@ def create_vivit_model(
     model_name: str = 'vivit_vitb16',
     aux_input_on: bool = True,
     temporal_depth: int = 8,
+    freeze_backbone: bool = False,
 ) -> ViViTCSGOModel:
     """
     Factory to create ViViTCSGOModel with pretrained ViT-B/16 spatial encoder.
@@ -258,6 +268,7 @@ def create_vivit_model(
         temporal_depth=temporal_depth,
         aux_input_length=aux_len,
         aux_input_on=aux_input_on,
+        freeze_backbone=freeze_backbone,
     )
 
     return model
