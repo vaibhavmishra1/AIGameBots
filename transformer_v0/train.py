@@ -408,13 +408,13 @@ def train(args: argparse.Namespace) -> None:
         )
 
         # Save last checkpoint every epoch
-        last_path = os.path.join(args.save_dir, f"{args.model_name}_last.pt")
+        last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter2.pt")
         save_checkpoint(last_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
 
         # Track and save best
         if avg_train_loss < best_loss:
             best_loss = avg_train_loss
-            best_path = os.path.join(args.save_dir, f"{args.model_name}_best.pt")
+            best_path = os.path.join(args.save_dir, f"{args.model_name}_best_iter2.pt")
             save_checkpoint(best_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
 
@@ -422,7 +422,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train ViViT CSGO behavioral cloning model")
     parser.add_argument('--model_name', type=str, default='vivit_vitb16', help="Model configuration name")
     parser.add_argument('--batch_size', type=int, default=10, help="Batch size")
-    parser.add_argument('--epochs', type=int, default=20, help="Number of epochs")
+    parser.add_argument('--epochs', type=int, default=40, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--weight_decay', type=float, default=0.05, help="Weight decay for AdamW")
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm for clipping")
@@ -439,7 +439,7 @@ def parse_args() -> argparse.Namespace:
     parser.set_defaults(freeze_backbone=False)
     parser.add_argument('--num_workers', type=int, default=8, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
-    parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
+    parser.add_argument('--resume', type=str, default='/home/ubuntu/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best.pt', help="Path to checkpoint (.pt) to resume training from")
     parser.add_argument('--temporal_depth', type=int, default=4, help="Temporal depth")
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()
