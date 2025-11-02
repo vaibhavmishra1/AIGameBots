@@ -455,11 +455,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--num_workers', type=int, default=8, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
     parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
-    parser.add_argument('--temporal_depth', type=int, default=1, help="Temporal depth")
+    parser.add_argument('--temporal_depth', type=int, default=4, help="Temporal depth")
     # Dynamic-k controls
     parser.add_argument('--no_dynamic_k', action='store_true', help='Disable dynamic-k attention gating')
     parser.add_argument('--k_tau', type=float, default=0.5, help='Temperature for k gating sharpness (lower = harder)')
-    parser.add_argument('--k_penalty_weight', type=float, default=0.01, help='Weight for dynamic-k sparsity penalty')
+    parser.add_argument('--k_penalty_weight', type=float, default=0.1, help='Weight for dynamic-k sparsity penalty')
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--use_prev_actions', dest='use_prev_actions', action='store_true', help="Feed previous actions as auxiliary input")
