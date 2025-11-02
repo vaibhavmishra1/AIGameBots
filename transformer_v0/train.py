@@ -130,6 +130,7 @@ def compute_custom_loss(
     y_true: torch.Tensor,
     mouse_sigma_x: float = 1.5,
     mouse_sigma_y: float = 1.0,
+    loss_scale: float = 1.0,
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = outputs
 
@@ -180,8 +181,8 @@ def compute_custom_loss(
     total_loss = loss1a + loss1b + loss1c + loss1d + loss2a + loss2b + loss3 + loss4  # + loss_crit
 
     # Apply loss scaling if specified (helps with training stability)
-    if hasattr(args, 'loss_scale') and args.loss_scale != 1.0:
-        total_loss = total_loss * args.loss_scale
+    if loss_scale != 1.0:
+        total_loss = total_loss * loss_scale
     parts = {
         'loss_keys_wasd': float(loss1a.detach().cpu().item()),
         'loss_keys_space': float(loss1b.detach().cpu().item()),
@@ -337,7 +338,9 @@ def train(args: argparse.Namespace) -> None:
         model_name=args.model_name,
         aux_input_on=args.use_prev_actions,
         temporal_depth=args.temporal_depth,
-        freeze_backbone=args.freeze_backbone
+        freeze_backbone=args.freeze_backbone,
+        use_dynamic_k=(not getattr(args, 'no_dynamic_k', False)),
+        k_tau=args.k_tau,
     )
     model.to(device)
 
@@ -371,7 +374,11 @@ def train(args: argparse.Namespace) -> None:
             optimizer.zero_grad(set_to_none=True)
             with torch.amp.autocast('cuda', enabled=(device.type == 'cuda')):
                 outputs = model(batch_x, aux_input=(batch_aux if args.use_prev_actions else None))
-                loss, loss_parts = compute_custom_loss(outputs, batch_y)
+                loss, loss_parts = compute_custom_loss(outputs, batch_y, loss_scale=args.loss_scale)
+
+                # Dynamic-k sparsity penalty (encourage smaller k)
+                if hasattr(model, 'get_k_penalty') and args.k_penalty_weight > 0.0:
+                    loss = loss + args.k_penalty_weight * model.get_k_penalty()
 
             scaler.scale(loss).backward()
 
@@ -393,12 +400,20 @@ def train(args: argparse.Namespace) -> None:
                     f"| Lclk_acc {metrics['Lclk_acc']:.3f} m_x_acc {metrics['m_x_acc']:.3f} "
                     f"m_y_acc {metrics['m_y_acc']:.3f} wasd_acc {metrics['wasd_acc']:.3f}"
                 )
+                # Optionally log mean k frames used
+                if hasattr(model, 'get_k_penalty'):
+                    p_mean = float(model.get_k_penalty().detach().cpu().item())
+                    k_mean = 1.0 + p_mean * (N_TIMESTEPS - 1)
+                    msg += f" k_mean {k_mean:.1f}"
                 print(msg)
 
         avg_train_loss = running_loss / max(running_batches, 1)
 
         # Validation
         val_loss, val_metrics = validate(model, val_loader, device)
+        # Include sparsity penalty in reported val loss for fairness
+        if hasattr(model, 'get_k_penalty') and args.k_penalty_weight > 0.0:
+            val_loss = float(val_loss) + float(args.k_penalty_weight) * float(model.get_k_penalty().detach().cpu().item())
         elapsed = time.time() - epoch_start
         print(
             f"epoch {epoch} done in {elapsed:.1f}s | train_loss {avg_train_loss:.4f} | "
@@ -439,8 +454,12 @@ def parse_args() -> argparse.Namespace:
     parser.set_defaults(freeze_backbone=False)
     parser.add_argument('--num_workers', type=int, default=8, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
-    parser.add_argument('--resume', type=str, default='/home/ubuntu/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best.pt', help="Path to checkpoint (.pt) to resume training from")
-    parser.add_argument('--temporal_depth', type=int, default=4, help="Temporal depth")
+    parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
+    parser.add_argument('--temporal_depth', type=int, default=1, help="Temporal depth")
+    # Dynamic-k controls
+    parser.add_argument('--no_dynamic_k', action='store_true', help='Disable dynamic-k attention gating')
+    parser.add_argument('--k_tau', type=float, default=0.5, help='Temperature for k gating sharpness (lower = harder)')
+    parser.add_argument('--k_penalty_weight', type=float, default=0.01, help='Weight for dynamic-k sparsity penalty')
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--use_prev_actions', dest='use_prev_actions', action='store_true', help="Feed previous actions as auxiliary input")

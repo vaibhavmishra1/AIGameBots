@@ -90,25 +90,74 @@ class ViTFeatureExtractor(nn.Module):
         return self.vit(x)
 
 
+class TransformerEncoderLayer(nn.Module):
+    """Transformer encoder layer supporting per-sample 3D attention masks."""
+
+    def __init__(self, d_model: int, nhead: int, dim_feedforward: int, dropout: float = 0.1, activation: str = 'gelu'):
+        super().__init__()
+        self.self_attn = nn.MultiheadAttention(embed_dim=d_model, num_heads=nhead, dropout=dropout, batch_first=True)
+        self.linear1 = nn.Linear(d_model, dim_feedforward)
+        self.dropout = nn.Dropout(dropout)
+        self.linear2 = nn.Linear(dim_feedforward, d_model)
+
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+
+        if activation == 'gelu':
+            self.activation = F.gelu
+        else:
+            self.activation = F.relu
+
+    def _sa_block(self, x: torch.Tensor, attn_mask: Optional[torch.Tensor]) -> torch.Tensor:
+        # attn_mask can be (B, T, T) float additive mask, or (T, T)
+        if attn_mask is not None:
+            if attn_mask.dim() == 2:
+                # Broadcast across batch and heads is handled by MHA for 2D masks
+                expanded_mask = attn_mask
+            else:
+                # Expand to (B * num_heads, T, T)
+                num_heads = self.self_attn.num_heads
+                B, T, _ = attn_mask.shape
+                expanded_mask = attn_mask.repeat_interleave(num_heads, dim=0)
+        else:
+            expanded_mask = None
+
+        x_attn, _ = self.self_attn(x, x, x, attn_mask=expanded_mask, need_weights=False)
+        return x_attn
+
+    def _ff_block(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.linear2(self.dropout(self.activation(self.linear1(x))))
+        return x
+
+    def forward(self, x: torch.Tensor, attn_mask: Optional[torch.Tensor]) -> torch.Tensor:
+        # Pre-norm (norm_first=True)
+        x = x + self.dropout1(self._sa_block(self.norm1(x), attn_mask))
+        x = x + self.dropout2(self._ff_block(self.norm2(x)))
+        return x
+
+
 class TransformerEncoder(nn.Module):
-    """Wrapper around nn.TransformerEncoder with batch_first=True."""
+    """Stack of encoder layers with final LayerNorm; supports per-sample masks."""
 
     def __init__(self, d_model: int, nhead: int, depth: int, mlp_ratio: float = 4.0, dropout: float = 0.1):
         super().__init__()
-        layer = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=int(d_model * mlp_ratio),
-            dropout=dropout,
-            activation='gelu',
-            batch_first=True,
-            norm_first=True,
-        )
-        # Apply a final LayerNorm after the stack for stability
-        self.encoder = nn.TransformerEncoder(layer, num_layers=depth, norm=nn.LayerNorm(d_model))
+        self.layers = nn.ModuleList([
+            TransformerEncoderLayer(
+                d_model=d_model,
+                nhead=nhead,
+                dim_feedforward=int(d_model * mlp_ratio),
+                dropout=dropout,
+                activation='gelu',
+            ) for _ in range(depth)
+        ])
+        self.final_norm = nn.LayerNorm(d_model)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.encoder(x)
+    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+        for layer in self.layers:
+            x = layer(x, mask)
+        return self.final_norm(x)
 
 
 class ViViTCSGOModel(nn.Module):
@@ -128,6 +177,8 @@ class ViViTCSGOModel(nn.Module):
         aux_input_length: int = 17,
         aux_input_on: bool = True,
         freeze_backbone: bool = False,
+        use_dynamic_k: bool = True,
+        k_tau: float = 0.5,
     ):
         super().__init__()
 
@@ -136,6 +187,8 @@ class ViViTCSGOModel(nn.Module):
         self.aux_input_length = aux_input_length
         self.aux_input_on = aux_input_on
         self.freeze_backbone = freeze_backbone
+        self.use_dynamic_k = use_dynamic_k
+        self.k_tau = k_tau
 
         # Pretrained ViT-B/16 for spatial feature extraction (768-dim features)
         self.spatial_encoder = ViTFeatureExtractor()
@@ -150,6 +203,13 @@ class ViViTCSGOModel(nn.Module):
         )
         # Normalize temporal inputs (features + positional encoding) before the transformer
         self.temporal_input_norm = nn.LayerNorm(768)
+
+        # Per-timestep dynamic-k predictor from current-frame spatial feature
+        self.k_proj = nn.Sequential(
+            nn.Linear(768, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)
+        )
 
         # Heads and shared layers
         if self.aux_input_on:
@@ -213,10 +273,30 @@ class ViViTCSGOModel(nn.Module):
         frame_features = self.spatial_encoder(x_btchw)  # (B*T, 768)
         frame_seq = frame_features.view(b, t, 768)  # (B, T, 768)
 
-        # Temporal encoding with positional embeddings
+        # Predict per-timestep dynamic lookback proportion p in [0,1] from current frame features
+        # k_t (frames) = 1 + p_t * (T - 1)
+        p = torch.sigmoid(self.k_proj(frame_seq)).squeeze(-1)  # (B, T)
+
+        # Temporal encoding with positional embeddings and dynamic-k gating mask
         pos_t = _build_sincos_1d_position_embedding(t, 768, frame_seq.device)
         temporal_in = self.temporal_input_norm(frame_seq + pos_t)  # (B, T, 768)
-        temporal_out = self.temporal_encoder(temporal_in)  # (B, T, 768)
+
+        attn_mask = None
+        if self.use_dynamic_k and t > 0:
+            # Per-sample gates: G[b, t, s] ~ 1 if (t - s) <= k_{b,t} else ~0 (causal)
+            k_frames = 1.0 + p * float(t - 1)  # (B, T)
+            idx = torch.arange(t, device=frame_seq.device)
+            dist = (idx.unsqueeze(1) - idx.unsqueeze(0)).clamp(min=0).float()  # (T, T)
+            gates = torch.sigmoid((k_frames.unsqueeze(-1) - dist.unsqueeze(0)) / max(self.k_tau, 1e-6))  # (B, T, T)
+            tril = torch.tril(torch.ones((t, t), device=frame_seq.device))
+            gates = gates * tril  # zero out future positions
+            attn_mask = torch.log(gates.clamp(min=1e-6))  # (B, T, T)
+
+            self.last_k_penalty = p.mean()
+        else:
+            self.last_k_penalty = torch.zeros((), device=frame_seq.device)
+
+        temporal_out = self.temporal_encoder(temporal_in, mask=attn_mask)  # (B, T, 768)
 
         # Handle auxiliary input
         if self.aux_input_on and aux_input is not None:
@@ -245,6 +325,9 @@ class ViViTCSGOModel(nn.Module):
 
         return keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out
 
+    def get_k_penalty(self) -> torch.Tensor:
+        return getattr(self, 'last_k_penalty', torch.zeros((), device=next(self.parameters()).device))
+
     def get_output_concatenated(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> torch.Tensor:
         keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = self.forward(x, aux_input)
         return torch.cat([keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out], dim=-1)
@@ -255,6 +338,8 @@ def create_vivit_model(
     aux_input_on: bool = True,
     temporal_depth: int = 8,
     freeze_backbone: bool = False,
+    use_dynamic_k: bool = True,
+    k_tau: float = 0.5,
 ) -> ViViTCSGOModel:
     """
     Factory to create ViViTCSGOModel with pretrained ViT-B/16 spatial encoder.
@@ -269,6 +354,8 @@ def create_vivit_model(
         aux_input_length=aux_len,
         aux_input_on=aux_input_on,
         freeze_backbone=freeze_backbone,
+        use_dynamic_k=use_dynamic_k,
+        k_tau=k_tau,
     )
 
     return model
