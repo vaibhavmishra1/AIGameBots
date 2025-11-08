@@ -133,28 +133,16 @@ class TorchAgent:
         return y.detach().cpu().numpy()
 
     @torch.no_grad()
-    def predict_with_dynamic_k(self, recent_imgs: list, recent_actions: list) -> tuple:
-        # Compute k from current frame only, then run model on last k frames
+    def predict_with_context(self, recent_imgs: list, recent_actions: list) -> tuple:
+        # Use fixed full context (no dynamic-k). Default to N_TIMESTEPS or env override.
         if len(recent_imgs) == 0:
             raise ValueError('recent_imgs is empty')
+        try:
+            k_target = int(os.environ.get('TRANSFORMER_CONTEXT', str(N_TIMESTEPS)))
+        except Exception:
+            k_target = N_TIMESTEPS
+        k = int(max(1, min(len(recent_imgs), k_target)))
 
-        # Current frame (1, H, W, 3) -> (1, 3, H, W)
-        x_last = recent_imgs[-1]
-        x_last = torch.from_numpy(x_last).float()
-        if x_last.max() > 1.0:
-            x_last = x_last / 255.0
-        x_last = x_last.permute(0, 3, 1, 2).to(self.device)
-
-        # Spatial encode and predict proportion p in [0,1]
-        feat_last = self.model.spatial_encoder(x_last)  # (1, 768)
-        p_last = torch.sigmoid(self.model.k_proj(feat_last)).squeeze()
-        p_last = torch.clamp(p_last, 0.0, 1.0)
-
-        k_max = len(recent_imgs)
-        k_float = 1.0 + p_last.item() * float(k_max - 1)
-        k = int(max(1, min(k_max, round(k_float))))
-
-        # Build last-k sequences
         last_imgs = recent_imgs[-k:]
         x_seq = np.stack([ri[0] for ri in last_imgs], axis=0)  # (T, H, W, 3)
         x_seq = np.expand_dims(x_seq, 0)  # (1, T, H, W, 3)
@@ -425,7 +413,7 @@ for training_iter in range(n_iters_total):
 
         # run fwd pass through NN
         time_before_pass = time.time()
-        y_preds, k_used = model_run.predict_with_dynamic_k(recent_imgs, recent_actions)
+        y_preds, k_used = model_run.predict_with_context(recent_imgs, recent_actions)
         if n_loops <= 1:
             time_for_pass = 0.1
         else:
