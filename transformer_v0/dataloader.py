@@ -127,6 +127,12 @@ class CSGODataset(Dataset):
 
         # Convert to tensors
         x_tensor = torch.from_numpy(x_data).float() / 255.0  # Normalize to [0, 1]
+
+        # Add ImageNet normalization (mean and std)
+        mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 1, 1, 3)
+        std = torch.tensor([0.229, 0.224, 0.225]).view(1, 1, 1, 3)
+        x_tensor = (x_tensor - mean) / std  # Apply to (T, H, W, C)
+
         y_tensor = torch.from_numpy(y_with_reward).float()
 
         # Build auxiliary input consisting of previous timestep's action one-hots

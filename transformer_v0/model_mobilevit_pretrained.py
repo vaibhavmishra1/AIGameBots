@@ -92,9 +92,27 @@ class PretrainedMobileViTEncoder(nn.Module):
         """
         B_T, C, H, W = x.shape
         
-        # Resize to MobileViT expected size if needed (256x256 is typical)
-        if H != 256 or W != 256:
-            x = F.interpolate(x, size=(256, 256), mode='bilinear', align_corners=False)
+        # Pad to square preserving aspect ratio
+        target_size = 256
+        aspect = W / H
+        if aspect > 1:  # Wider than tall
+            new_w = target_size
+            new_h = int(target_size / aspect)
+        else:
+            new_h = target_size
+            new_w = int(target_size * aspect)
+        
+        # Resize to new_h x new_w
+        x = F.interpolate(x, size=(new_h, new_w), mode='bilinear', align_corners=False)
+        
+        # Pad to target_size x target_size
+        pad_h = target_size - new_h
+        pad_w = target_size - new_w
+        pad_top = pad_h // 2
+        pad_bottom = pad_h - pad_top
+        pad_left = pad_w // 2
+        pad_right = pad_w - pad_left
+        x = F.pad(x, (pad_left, pad_right, pad_top, pad_bottom), mode='constant', value=0)
         
         # Extract multi-scale features
         features = self.base_model(x)
