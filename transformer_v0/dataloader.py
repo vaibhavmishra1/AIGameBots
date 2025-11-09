@@ -9,6 +9,9 @@ import sys
 import os
 import atexit
 
+from torchvision import transforms
+from PIL import Image
+
 # Import shared config from the original project
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Counter-Strike_Behavioural_Cloning'))
 from config import *  # noqa: F401,F403
@@ -55,6 +58,14 @@ class CSGODataset(Dataset):
         self._worker_pid: Optional[int] = None
         self._open_all_h5_files()
         atexit.register(self._close_all_h5_files)
+
+        # ViT preprocessing transforms (matches IMAGENET1K_V1: resize 256, crop 224, normalize)
+        self.vit_transform = transforms.Compose([
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),  # Converts PIL to tensor and scales to [0,1]
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
 
     def __len__(self) -> int:
         return len(self.data_list)
@@ -123,8 +134,16 @@ class CSGODataset(Dataset):
         if self.transform:
             x_data, y_with_reward = self._apply_augmentations(x_data, y_with_reward)
 
+        # Apply ViT preprocessing to each frame (expects uint8 numpy -> PIL -> tensor)
+        x_transformed = torch.empty((N_TIMESTEPS, 3, 224, 224), dtype=torch.float32)
+        for j in range(N_TIMESTEPS):
+            # Convert numpy uint8 frame to PIL Image
+            frame_pil = Image.fromarray(x_data[j])
+            # Apply transforms
+            x_transformed[j] = self.vit_transform(frame_pil)
+
         # Convert to tensors
-        x_tensor = torch.from_numpy(x_data).float() / 255.0  # Normalize to [0, 1]
+        # y_tensor and aux_tensor remain as before
         y_tensor = torch.from_numpy(y_with_reward).float()
 
         # Build auxiliary input consisting of previous timestep's action one-hots
@@ -134,7 +153,7 @@ class CSGODataset(Dataset):
         prev_actions[1:] = y_with_reward[:-1, :action_dim]
         aux_tensor = torch.from_numpy(prev_actions).float()
 
-        return x_tensor, y_tensor, aux_tensor
+        return x_transformed, y_tensor, aux_tensor
 
     def _open_all_h5_files(self) -> None:
         """
@@ -392,8 +411,8 @@ def create_data_loaders(
 
 
     partition_full = {
-        'train_full': data_list_full[:int(len(data_list_full) * 1.0)],
-        'validation_full': data_list_full[int(len(data_list_full) * 0.995):]
+        'train_full': data_list_full[:int(len(data_list_full) * 95)],
+        'validation_full': data_list_full[int(len(data_list_full) * 0.95):]
     }
     training_loader_full = CSGODataLoader(
         data_list=partition_full['train_full'],

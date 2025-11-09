@@ -72,20 +72,20 @@ class ViTFeatureExtractor(nn.Module):
         # Remove the classification head to get features
         self.vit.heads = nn.Identity()
 
-        # ViT expects (B, C, H, W) with H=W=224
+        # ViT expects (B, C, H, W) with H=W=384 for SWAG weights
         self.expected_size = 224
+
+        # Normalization params from PyTorch docs
+        self.mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
+        self.std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            x: (B*T, C, H, W) - batch of frames
+            x: (B*T, C, H, W) - batch of frames (already preprocessed: resized, cropped, scaled [0,1], normalized)
         Returns:
             features: (B*T, 768) - [CLS] token features from ViT
         """
-        # Resize to expected input size (224x224)
-        if x.shape[-1] != self.expected_size or x.shape[-2] != self.expected_size:
-            x = F.interpolate(x, size=(self.expected_size, self.expected_size), mode='bicubic', align_corners=False)
-
         # Forward through ViT (output is [CLS] token: (B*T, 768))
         return self.vit(x)
 
@@ -195,21 +195,17 @@ class ViViTCSGOModel(nn.Module):
     def forward(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, ...]:
         """
         Args:
-            x: (batch, timesteps, height, width, channels)
+            x: (batch, timesteps, channels, height, width) - already preprocessed
             aux_input: Optional [(batch, timesteps, aux_dim) or (batch, aux_dim)] previous action vectors
 
         Returns:
             Tuple of (keys, clicks, mouse_x, mouse_y, value)
             where each is (batch, timesteps, ...)
         """
-        b, t, h, w, c = x.shape
-
-        # Convert to (B, T, C, H, W)
-        if c == 3:
-            x = x.permute(0, 1, 4, 2, 3).contiguous()  # (B, T, 3, H, W)
+        b, t, c, h, w = x.shape
 
         # Spatial encoding: extract features from each frame using ViT
-        x_btchw = x.view(b * t, 3, h, w)  # (B*T, 3, H, W)
+        x_btchw = x.view(b * t, c, h, w)  # (B*T, C, H, W)
         frame_features = self.spatial_encoder(x_btchw)  # (B*T, 768)
         frame_seq = frame_features.view(b, t, 768)  # (B, T, 768)
 

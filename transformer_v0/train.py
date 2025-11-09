@@ -3,11 +3,12 @@ import sys
 import time
 import math
 import argparse
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 import torch
 import torch.nn.functional as F
 from torch import nn
+import torch.optim.lr_scheduler as lr_scheduler
 
 # Ensure we can import shared CSGO modules (config, etc.) used by reused helpers
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Counter-Strike_Behavioural_Cloning'))
@@ -50,6 +51,7 @@ def save_checkpoint(path: str,
                     model: nn.Module,
                     optimizer: torch.optim.Optimizer,
                     scaler: torch.cuda.amp.GradScaler,
+                    scheduler: "torch.optim.lr_scheduler._LRScheduler",
                     epoch: int,
                     global_step: int,
                     best_loss: float,
@@ -58,6 +60,7 @@ def save_checkpoint(path: str,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'scaler_state_dict': scaler.state_dict(),
+        'scheduler_state_dict': scheduler.state_dict(),
         'epoch': epoch,
         'global_step': global_step,
         'best_loss': best_loss,
@@ -70,14 +73,14 @@ def try_load_checkpoint(path: str,
                         model: nn.Module,
                         optimizer: torch.optim.Optimizer,
                         scaler: torch.cuda.amp.GradScaler,
-                        device: torch.device) -> Tuple[int, int, float]:
+                        device: torch.device) -> Tuple[int, int, float, Optional[Dict]]:
     """
     Load checkpoint (supports model-only .pt or full training state).
     Returns (start_epoch, global_step, best_loss).
     """
     if not path or not os.path.isfile(path):
         print(f"No checkpoint found at {path}, starting fresh")
-        return 1, 0, math.inf
+        return 1, 0, math.inf, None
 
     print(f"Loading checkpoint: {path}")
     ckpt = torch.load(path, map_location=device)
@@ -100,6 +103,7 @@ def try_load_checkpoint(path: str,
     start_epoch = 1
     global_step = 0
     best_loss = math.inf
+    scheduler_state = None
 
     if isinstance(ckpt, dict):
         if 'optimizer_state_dict' in ckpt:
@@ -112,6 +116,8 @@ def try_load_checkpoint(path: str,
                 scaler.load_state_dict(ckpt['scaler_state_dict'])
             except Exception as e:
                 print(f"[resume] GradScaler load failed: {e}")
+        if 'scheduler_state_dict' in ckpt:
+            scheduler_state = ckpt['scheduler_state_dict']
         if 'epoch' in ckpt and isinstance(ckpt['epoch'], int):
             start_epoch = int(ckpt['epoch']) + 1
         if 'global_step' in ckpt and isinstance(ckpt['global_step'], int):
@@ -123,7 +129,7 @@ def try_load_checkpoint(path: str,
                 best_loss = math.inf
 
     print(f"Resumed. Next epoch: {start_epoch}, global_step: {global_step}, best_loss: {best_loss}")
-    return start_epoch, global_step, best_loss
+    return start_epoch, global_step, best_loss, scheduler_state
 
 def compute_custom_loss(
     outputs: Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
@@ -355,8 +361,14 @@ def train(args: argparse.Namespace) -> None:
     start_epoch = 1
 
     # Optionally resume
+    scheduler_state = None
     if getattr(args, 'resume', None):
-        start_epoch, global_step, best_loss = try_load_checkpoint(args.resume, model, optimizer, scaler, device)
+        start_epoch, global_step, best_loss, scheduler_state = try_load_checkpoint(args.resume, model, optimizer, scaler, device)
+
+    scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs - start_epoch + 1, eta_min=args.lr * 0.01)
+    if scheduler_state is not None:
+        scheduler.load_state_dict(scheduler_state)
+
     model.train()
     for epoch in range(start_epoch, args.epochs + 1):
         epoch_start = time.time()
@@ -397,6 +409,8 @@ def train(args: argparse.Namespace) -> None:
 
         avg_train_loss = running_loss / max(running_batches, 1)
 
+        scheduler.step()
+
         # Validation
         val_loss, val_metrics = validate(model, val_loader, device)
         elapsed = time.time() - epoch_start
@@ -409,13 +423,13 @@ def train(args: argparse.Namespace) -> None:
 
         # Save last checkpoint every epoch
         last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter2.pt")
-        save_checkpoint(last_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
+        save_checkpoint(last_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
 
         # Track and save best
         if avg_train_loss < best_loss:
             best_loss = avg_train_loss
             best_path = os.path.join(args.save_dir, f"{args.model_name}_best_iter2.pt")
-            save_checkpoint(best_path, model, optimizer, scaler, epoch, global_step, best_loss, args)
+            save_checkpoint(best_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
 
 def parse_args() -> argparse.Namespace:
@@ -423,7 +437,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--model_name', type=str, default='vivit_vitb16', help="Model configuration name")
     parser.add_argument('--batch_size', type=int, default=10, help="Batch size")
     parser.add_argument('--epochs', type=int, default=40, help="Number of epochs")
-    parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
+    parser.add_argument('--lr', type=float, default=5e-5, help="Learning rate")
     parser.add_argument('--weight_decay', type=float, default=0.05, help="Weight decay for AdamW")
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm for clipping")
     parser.add_argument('--loss_scale', type=float, default=1.0, help="Loss scaling factor for training stability")
@@ -437,10 +451,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze pretrained spatial encoder weights during training")
     parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
-    parser.add_argument('--num_workers', type=int, default=8, help="DataLoader workers")
+    parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
-    parser.add_argument('--resume', type=str, default='/home/ubuntu/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best.pt', help="Path to checkpoint (.pt) to resume training from")
-    parser.add_argument('--temporal_depth', type=int, default=4, help="Temporal depth")
+    parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
+    parser.add_argument('--temporal_depth', type=int, default=8, help="Temporal depth")
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--use_prev_actions', dest='use_prev_actions', action='store_true', help="Feed previous actions as auxiliary input")
