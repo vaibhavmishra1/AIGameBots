@@ -201,6 +201,9 @@ class EfficientNetFeatureExtractor(nn.Module):
         # Output embedding dimension after global pooling
         self.output_dim = 1280
 
+        # Attention conv for pooling
+        self.attn_conv = nn.Conv2d(self.output_dim, 1, kernel_size=1)
+
         # Register ImageNet normalization buffers (not trainable)
         self.register_buffer('imagenet_mean', torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1), persistent=False)
         self.register_buffer('imagenet_std', torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1), persistent=False)
@@ -222,8 +225,16 @@ class EfficientNetFeatureExtractor(nn.Module):
 
         # Forward through EfficientNet features + global pooling
         feats = self.net.features(x)                 # (B*T, C, H', W')
-        pooled = self.net.avgpool(feats)            # (B*T, C, 1, 1)
-        vec = torch.flatten(pooled, 1)              # (B*T, C)
+
+        # Attention pooling instead of avgpool
+        # Compute spatial attention weights
+        attn = self.attn_conv(feats)  # (B*T, 1, H', W')
+        attn = F.softmax(attn.view(feats.size(0), 1, -1), dim=-1)  # Softmax over spatial dims
+        # Weighted sum: (B*T, C, H'*W') * (B*T, 1, H'*W') -> (B*T, C)
+        feats_flat = feats.view(feats.size(0), feats.size(1), -1)
+        pooled = torch.bmm(feats_flat, attn.transpose(1, 2)).squeeze(2)  # (B*T, C)
+
+        vec = torch.flatten(pooled, 1)              # (B*T, C) - already flat
         return vec
 
 

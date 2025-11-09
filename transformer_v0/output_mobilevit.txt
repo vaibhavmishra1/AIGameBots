@@ -45,3 +45,22 @@ epoch 5 step 70 | loss 5.3980 | Lclk_acc 0.959 m_x_acc 0.366 m_y_acc 0.467 wasd_
 epoch 5 done in 154.1s | train_loss 5.3973 | val_loss 5.5022 | Lclk_acc 0.967 m_x_acc 0.278 m_y_acc 0.422 wasd_acc 0.966
 Saved best model (loss) with val_loss=5.5022
 Saved best model (mouse) with avg_mouse_acc=0.3500
+epoch 6 step 10 | loss 5.3980 | Lclk_acc 0.961 m_x_acc 0.353 m_y_acc 0.466 wasd_acc 0.964 | lr 0.000049
+epoch 6 step 20 | loss 5.3838 | Lclk_acc 0.960 m_x_acc 0.365 m_y_acc 0.474 wasd_acc 0.964 | lr 0.000049
+epoch 6 step 30 | loss 5.3714 | Lclk_acc 0.960 m_x_acc 0.371 m_y_acc 0.479 wasd_acc 0.964 | lr 0.000049
+epoch 6 step 40 | loss 5.3675 | Lclk_acc 0.960 m_x_acc 0.373 m_y_acc 0.482 wasd_acc 0.964 | lr 0.000049
+epoch 6 step 50 | loss 5.3787 | Lclk_acc 0.959 m_x_acc 0.369 m_y_acc 0.476 wasd_acc 0.964 | lr 0.000049
+epoch 6 step 60 | loss 5.3843 | Lclk_acc 0.959 m_x_acc 0.367 m_y_acc 0.474 wasd_acc 0.964 | lr 0.000049
+epoch 6 step 70 | loss 5.3847 | Lclk_acc 0.960 m_x_acc 0.366 m_y_acc 0.473 wasd_acc 0.964 | lr 0.000049
+epoch 6 done in 154.8s | train_loss 5.3833 | val_loss 5.4914 | Lclk_acc 0.969 m_x_acc 0.278 m_y_acc 0.421 wasd_acc 0.966
+Saved best model (loss) with val_loss=5.4914
+epoch 7 step 10 | loss 5.3705 | Lclk_acc 0.963 m_x_acc 0.368 m_y_acc 0.472 wasd_acc 0.965 | lr 0.000049
+epoch 7 step 20 | loss 5.3944 | Lclk_acc 0.960 m_x_acc 0.358 m_y_acc 0.465 wasd_acc 0.963 | lr 0.000049
+epoch 7 step 30 | loss 5.3838 | Lclk_acc 0.961 m_x_acc 0.363 m_y_acc 0.469 wasd_acc 0.964 | lr 0.000049
+epoch 7 step 40 | loss 5.3786 | Lclk_acc 0.961 m_x_acc 0.363 m_y_acc 0.472 wasd_acc 0.964 | lr 0.000048
+epoch 7 step 50 | loss 5.3783 | Lclk_acc 0.960 m_x_acc 0.364 m_y_acc 0.474 wasd_acc 0.964 | lr 0.000048
+epoch 7 step 60 | loss 5.3820 | Lclk_acc 0.960 m_x_acc 0.363 m_y_acc 0.473 wasd_acc 0.964 | lr 0.000048
+epoch 7 step 70 | loss 5.3824 | Lclk_acc 0.960 m_x_acc 0.363 m_y_acc 0.472 wasd_acc 0.964 | lr 0.000048
+epoch 7 done in 154.1s | train_loss 5.3777 | val_loss 5.4891 | Lclk_acc 0.969 m_x_acc 0.278 m_y_acc 0.425 wasd_acc 0.966
+Saved best model (loss) with val_loss=5.4891
+Saved best model (mouse) with avg_mouse_acc=0.3516

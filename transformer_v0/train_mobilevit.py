@@ -66,9 +66,9 @@ def create_optimizer_and_scheduler(model, args, steps_per_epoch):
     
     # Use different learning rates for different parts
     param_groups = [
-        {'params': spatial_params, 'lr': args.lr * 0.1},  # Lower LR for pretrained spatial
-        {'params': temporal_params, 'lr': args.lr},       # Full LR for temporal
-        {'params': other_params, 'lr': args.lr * 0.5},    # Medium LR for heads
+        {'params': spatial_params, 'lr': args.lr * 0.5},  # Increased from 0.1
+        {'params': temporal_params, 'lr': args.lr},
+        {'params': other_params, 'lr': args.lr},  # Increased from 0.5
     ]
     
     # AdamW optimizer with better settings for transformers
@@ -78,6 +78,7 @@ def create_optimizer_and_scheduler(model, args, steps_per_epoch):
         betas=(0.9, 0.95),  # Lower beta2 for transformers
         eps=1e-8
     )
+    print(f"Optimizer LR groups: {[g['lr'] for g in optimizer.param_groups]}")  # Debug print
     
     # Create warmup + cosine decay schedule
     num_training_steps = args.epochs * steps_per_epoch
@@ -86,7 +87,7 @@ def create_optimizer_and_scheduler(model, args, steps_per_epoch):
     # Linear warmup
     warmup_scheduler = LinearLR(
         optimizer,
-        start_factor=0.001,
+        start_factor=0.01,  # Increased from 0.001 for faster warmup
         end_factor=1.0,
         total_iters=num_warmup_steps
     )
@@ -95,7 +96,7 @@ def create_optimizer_and_scheduler(model, args, steps_per_epoch):
     cosine_scheduler = CosineAnnealingLR(
         optimizer,
         T_max=num_training_steps - num_warmup_steps,
-        eta_min=args.lr * 0.01  # Decay to 1% of initial LR
+        eta_min=args.lr * 0.001  # Decreased from 0.01 for less aggressive decay
     )
     
     # Combine schedulers

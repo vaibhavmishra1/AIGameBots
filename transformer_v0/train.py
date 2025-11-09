@@ -425,7 +425,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train ViViT CSGO behavioral cloning model")
     parser.add_argument('--model_name', type=str, default='vivit_vitb16', help="Model configuration name")
     parser.add_argument('--batch_size', type=int, default=14, help="Batch size")
-    parser.add_argument('--epochs', type=int, default=40, help="Number of epochs")
+    parser.add_argument('--epochs', type=int, default=80, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--weight_decay', type=float, default=0.05, help="Weight decay for AdamW")
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm for clipping")
@@ -443,7 +443,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
     parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
     parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
-    parser.add_argument('--temporal_depth', type=int, default=16, help="Temporal depth")
+    parser.add_argument('--temporal_depth', type=int, default=8, help="Temporal depth")
     # Dynamic-k controls removed
     # Toggle feeding previous actions as auxiliary input
     group = parser.add_mutually_exclusive_group()
