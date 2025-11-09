@@ -425,9 +425,9 @@ def train(args: argparse.Namespace) -> None:
         last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter2.pt")
         save_checkpoint(last_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
 
-        # Track and save best
-        if avg_train_loss < best_loss:
-            best_loss = avg_train_loss
+        # Track and save best based on validation loss
+        if val_loss < best_loss:
+            best_loss = val_loss
             best_path = os.path.join(args.save_dir, f"{args.model_name}_best_iter2.pt")
             save_checkpoint(best_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
