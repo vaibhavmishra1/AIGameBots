@@ -431,7 +431,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--highest_num', type=int, default=190, help="Highest file number to use")
     parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
-    parser.add_argument('--data_dir', type=str, default='/home/ubuntu/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
+    parser.add_argument('--data_dir', type=str, default='/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
     parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
     parser.add_argument('--pretrained', action='store_true', help="Use pretrained ViT weights for spatial encoder")
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze pretrained spatial encoder weights during training")
