@@ -17,6 +17,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Counter-Strike_Be
 from dataloader import create_data_loaders  # noqa: E402
 
 from model import create_vivit_model  # noqa: E402
+from distill_losses import bce_probs as kd_bce_probs, kl_divergence_probs as kd_kl_probs, mse as kd_mse, warmup_factor  # noqa: E402
 
 # Local copies of loss/metrics (copied from pytorch_implementatiion/train.py to avoid cross-package deps)
 from config import (
@@ -338,13 +339,55 @@ def train(args: argparse.Namespace) -> None:
         transform=True,
     )
 
-    # Model
-    model = create_vivit_model(
-        model_name=args.model_name,
-        aux_input_on=args.use_prev_actions,
-        temporal_depth=args.temporal_depth,
-        freeze_backbone=args.freeze_backbone
-    )
+    # Model(s)
+    if getattr(args, 'kd', False):
+        # Student
+        student_model_name = args.student_model if getattr(args, 'student_model', '') else args.model_name
+        model = create_vivit_model(
+            model_name=student_model_name,
+            aux_input_on=args.use_prev_actions,
+            temporal_depth=args.temporal_depth,
+            freeze_backbone=args.freeze_backbone
+        )
+        # Teacher (frozen)
+        teacher = create_vivit_model(
+            model_name='vivit_vitb16',
+            aux_input_on=args.use_prev_actions,
+            temporal_depth=args.temporal_depth,
+            freeze_backbone=True
+        )
+        teacher.to(device)
+        teacher.eval()
+        for p in teacher.parameters():
+            p.requires_grad = False
+
+        # Load teacher checkpoint (model-only)
+        if getattr(args, 'teacher_ckpt', None):
+            ckpt_path = args.teacher_ckpt
+            if os.path.isfile(ckpt_path):
+                print(f"[KD] Loading teacher checkpoint from: {ckpt_path}")
+                ckpt = torch.load(ckpt_path, map_location=device)
+                if isinstance(ckpt, dict) and ('model_state_dict' in ckpt):
+                    model_state = ckpt['model_state_dict']
+                elif isinstance(ckpt, dict) and ('state_dict' in ckpt):
+                    model_state = ckpt['state_dict']
+                else:
+                    model_state = ckpt
+                missing, unexpected = teacher.load_state_dict(model_state, strict=False)
+                if missing:
+                    print(f"[KD] Teacher missing keys: {len(missing)}")
+                if unexpected:
+                    print(f"[KD] Teacher unexpected keys: {len(unexpected)}")
+            else:
+                print(f"[KD] Teacher checkpoint not found at {ckpt_path}. Proceeding without load.")
+    else:
+        model = create_vivit_model(
+            model_name=args.model_name,
+            aux_input_on=args.use_prev_actions,
+            temporal_depth=args.temporal_depth,
+            freeze_backbone=args.freeze_backbone
+        )
+        teacher = None
     model.to(device)
 
     # Simple AdamW optimizer
@@ -382,8 +425,37 @@ def train(args: argparse.Namespace) -> None:
 
             optimizer.zero_grad(set_to_none=True)
             with torch.amp.autocast('cuda', enabled=(device.type == 'cuda')):
-                outputs = model(batch_x, aux_input=(batch_aux if args.use_prev_actions else None))
-                loss, loss_parts = compute_custom_loss(outputs, batch_y)
+                if getattr(args, 'kd', False):
+                    # Forward student with features
+                    s_keys, s_clicks, s_mx, s_my, s_val, s_feats = model(
+                        batch_x, aux_input=(batch_aux if args.use_prev_actions else None), return_features=True
+                    )
+                    # Forward teacher with features (no grad)
+                    with torch.no_grad():
+                        t_keys, t_clicks, t_mx, t_my, t_val, t_feats = teacher(
+                            batch_x, aux_input=(batch_aux if args.use_prev_actions else None), return_features=True
+                        )
+                    # Supervised loss on student
+                    loss_sup, _ = compute_custom_loss((s_keys, s_clicks, s_mx, s_my, s_val), batch_y)
+                    # Response KD
+                    loss_kd_resp = (
+                        kd_bce_probs(s_keys, t_keys) +
+                        kd_bce_probs(s_clicks, t_clicks) +
+                        kd_kl_probs(t_mx, s_mx, temperature=args.temp_kd) +
+                        kd_kl_probs(t_my, s_my, temperature=args.temp_kd) +
+                        kd_mse(s_val, t_val)
+                    )
+                    # Feature KD (project student->teacher width where needed)
+                    s_frame_aligned = model.proj_s2t_frame(s_feats['frame_seq'])
+                    s_temp_aligned = model.proj_s2t_temp(s_feats['temporal_out'])
+                    loss_kd_feat = kd_mse(s_frame_aligned, t_feats['frame_seq']) + kd_mse(s_temp_aligned, t_feats['temporal_out'])
+                    # Warmup
+                    kd_warm = warmup_factor(epoch, args.kd_warmup_epochs)
+                    loss = loss_sup + kd_warm * (args.alpha_kd * loss_kd_resp + args.beta_kd * loss_kd_feat)
+                    outputs = (s_keys, s_clicks, s_mx, s_my, s_val)
+                else:
+                    outputs = model(batch_x, aux_input=(batch_aux if args.use_prev_actions else None))
+                    loss, loss_parts = compute_custom_loss(outputs, batch_y)
 
             scaler.scale(loss).backward()
 
@@ -422,13 +494,19 @@ def train(args: argparse.Namespace) -> None:
         )
 
         # Save last checkpoint every epoch
-        last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter3.pt")
+        if getattr(args, 'kd', False):
+            last_path = os.path.join(args.save_dir, "student_last_kd.pt")
+        else:
+            last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter3.pt")
         save_checkpoint(last_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
 
         # Track and save best based on validation loss
         if val_loss < best_loss:
             best_loss = val_loss
-            best_path = os.path.join(args.save_dir, f"{args.model_name}_best_iter3.pt")
+            if getattr(args, 'kd', False):
+                best_path = os.path.join(args.save_dir, "student_best_kd.pt")
+            else:
+                best_path = os.path.join(args.save_dir, f"{args.model_name}_best_iter3.pt")
             save_checkpoint(best_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
 
@@ -460,6 +538,15 @@ def parse_args() -> argparse.Namespace:
     group.add_argument('--use_prev_actions', dest='use_prev_actions', action='store_true', help="Feed previous actions as auxiliary input")
     group.add_argument('--no_prev_actions', dest='use_prev_actions', action='store_false', help="Disable feeding previous actions as auxiliary input")
     parser.set_defaults(use_prev_actions=True)
+    # KD options
+    parser.add_argument('--kd', action='store_true', help="Enable knowledge distillation training (teacher-student)")
+    parser.add_argument('--teacher_ckpt', type=str, default='/root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt', help="Path to teacher checkpoint (.pt)")
+    parser.add_argument('--student_model', type=str, default='deit_tiny', choices=['deit_tiny', 'mobilenet_small', 'vivit_vitb16'], help="Student spatial backbone")
+    parser.add_argument('--alpha_kd', type=float, default=1.0, help="Weight for response KD loss")
+    parser.add_argument('--beta_kd', type=float, default=0.5, help="Weight for feature KD loss")
+    parser.add_argument('--temp_kd', type=float, default=2.0, help="Temperature for KL distillation")
+    parser.add_argument('--kd_warmup_epochs', type=int, default=2, help="Warmup epochs for KD blending")
+    parser.add_argument('--ema', action='store_true', help="Enable EMA on student (optional, not required)")
     return parser.parse_args()
 
 if __name__ == '__main__':

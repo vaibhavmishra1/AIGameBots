@@ -61,3 +61,29 @@ model.set_stateful(True)
 ## Notes
 - Loss/metrics/validate are reused from the ConvLSTM pipeline to keep parity.
 - No extra dependencies required. Optionally, you can add `timm` later for pretrained ViT weights.
+
+## Knowledge Distillation (Teacher → Student)
+- Teacher checkpoint path (default): `/root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt`
+- Run KD with a compact student:
+```bash
+cd transformer_v0
+python3 train.py \
+  --kd \
+  --student_model deit_tiny \  
+  --teacher_ckpt /root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt \
+  --batch_size 10 \
+  --epochs 40 \
+  --lr 5e-5 \
+  --starting_num 2 \
+  --highest_num 190 \
+  --data_dir /root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/ \
+  --use_prev_actions
+```
+- KD hyperparameters:
+  - `--alpha_kd` (resp KD weight, default 1.0)
+  - `--beta_kd` (feature KD weight, default 0.5)
+  - `--temp_kd` (KL temperature, default 2.0)
+  - `--kd_warmup_epochs` (default 2)
+- Outputs:
+  - Last: `checkpoints/student_last_kd.pt`
+  - Best: `checkpoints/student_best_kd.pt`

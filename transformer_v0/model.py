@@ -7,7 +7,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 from torchvision.models.vision_transformer import ViT_B_16_Weights
+from torchvision.models.mobilenetv3 import MobileNet_V3_Small_Weights
+from typing import Optional, Tuple, Dict, Any
 
+# Optional timm import for student backbones
+try:
+    import timm  # type: ignore
+    _has_timm = True
+except Exception:
+    _has_timm = False
 # Config values (from config.py)
 input_shape = (96, 150, 280, 3)  # (timesteps, height, width, channels)
 n_keys = 11      # keyboard outputs
@@ -90,6 +98,59 @@ class ViTFeatureExtractor(nn.Module):
         return self.vit(x)
 
 
+class DeiTFeatureExtractor(nn.Module):
+    """
+    Wrapper around timm DeiT-Tiny to extract [CLS] features (embed_dim=192).
+    Falls back to random init if pretrained weights unavailable.
+    """
+    def __init__(self):
+        super().__init__()
+        if not _has_timm:
+            raise RuntimeError("timm not available for DeiTFeatureExtractor")
+        try:
+            # num_classes=0 makes forward() return features for many timm models
+            self.deit = timm.create_model(
+                'deit_tiny_patch16_224',
+                pretrained=True,
+                num_classes=0
+            )
+        except Exception:
+            self.deit = timm.create_model(
+                'deit_tiny_patch16_224',
+                pretrained=False,
+                num_classes=0
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        feats = self.deit(x)
+        # timm usually returns (B, D) when num_classes=0; handle (B, tokens, D) just in case
+        if feats.dim() == 3:
+            return feats[:, 0, :]
+        return feats
+
+
+class MobileNetSmallFeatureExtractor(nn.Module):
+    """
+    Wrapper around torchvision MobileNetV3-Small to produce a compact feature vector (dim=192).
+    """
+    def __init__(self, out_dim: int = 192):
+        super().__init__()
+        try:
+            backbone = models.mobilenet_v3_small(weights=MobileNet_V3_Small_Weights.IMAGENET1K_V1)
+        except Exception:
+            backbone = models.mobilenet_v3_small(weights=None)
+        self.features = backbone.features  # convolutional body
+        # Final conv channels of MobileNetV3-Small are typically 576
+        self.pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.proj = nn.Linear(576, out_dim)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.features(x)  # (B, C, H, W)
+        x = self.pool(x)      # (B, C, 1, 1)
+        x = torch.flatten(x, 1)  # (B, C)
+        return self.proj(x)   # (B, out_dim)
+
+
 class TransformerEncoder(nn.Module):
     """Wrapper around nn.TransformerEncoder with batch_first=True."""
 
@@ -137,27 +198,47 @@ class ViViTCSGOModel(nn.Module):
         self.aux_input_on = aux_input_on
         self.freeze_backbone = freeze_backbone
 
-        # Pretrained ViT-B/16 for spatial feature extraction (768-dim features)
-        self.spatial_encoder = ViTFeatureExtractor()
+        # Select spatial encoder and set feature dimension
+        self.spatial_dim = 768
+        if self.model_name in ('vivit_vitb16', 'vit_b_16', 'vitb16'):
+            # Pretrained ViT-B/16 for spatial feature extraction (768-dim features)
+            self.spatial_encoder = ViTFeatureExtractor()
+            self.spatial_dim = 768
+        elif self.model_name in ('deit_tiny', 'vivit_deit_tiny'):
+            if not _has_timm:
+                # Fallback to MobileNet if timm unavailable
+                self.spatial_encoder = MobileNetSmallFeatureExtractor(out_dim=192)
+            else:
+                self.spatial_encoder = DeiTFeatureExtractor()
+            self.spatial_dim = 192
+        elif self.model_name in ('mobilenet_small', 'vivit_mobilenet_small'):
+            self.spatial_encoder = MobileNetSmallFeatureExtractor(out_dim=192)
+            self.spatial_dim = 192
+        else:
+            # Default to ViT-B/16
+            self.spatial_encoder = ViTFeatureExtractor()
+            self.spatial_dim = 768
 
         if self.freeze_backbone:
             for param in self.spatial_encoder.parameters():
                 param.requires_grad = False
 
-        # Temporal transformer (768-dim input from ViT)
+        # Temporal transformer (d_model matches spatial feature dimension)
+        # Choose attention heads based on width
+        nhead = 12 if self.spatial_dim >= 768 else max(1, self.spatial_dim // 64)
         self.temporal_encoder = TransformerEncoder(
-            d_model=768, nhead=12, depth=temporal_depth, mlp_ratio=4.0, dropout=0.1
+            d_model=self.spatial_dim, nhead=nhead, depth=temporal_depth, mlp_ratio=4.0, dropout=0.1
         )
         # Normalize temporal inputs (features + positional encoding) before the transformer
-        self.temporal_input_norm = nn.LayerNorm(768)
+        self.temporal_input_norm = nn.LayerNorm(self.spatial_dim)
 
         # Heads and shared layers
         if self.aux_input_on:
             self.aux_dense = nn.Linear(aux_input_length, 256)
-            shared_in = 768 + 256  # temporal D (768) + aux 256
+            shared_in = self.spatial_dim + 256  # temporal D + aux 256
         else:
             self.aux_dense = None
-            shared_in = 768
+            shared_in = self.spatial_dim
 
         self.shared_dense = nn.Linear(shared_in, 256)
 
@@ -170,6 +251,11 @@ class ViViTCSGOModel(nn.Module):
 
         self.sigmoid = nn.Sigmoid()
         self.softmax = nn.Softmax(dim=-1)
+
+        # Projections for KD (student-to-teacher 192/other -> 768)
+        # Present for all models for simplicity; no overhead if unused
+        self.proj_s2t_frame = nn.Linear(self.spatial_dim, 768) if self.spatial_dim != 768 else nn.Identity()
+        self.proj_s2t_temp = nn.Linear(self.spatial_dim, 768) if self.spatial_dim != 768 else nn.Identity()
 
         # Initialize weights properly for transformers
         self._initialize_weights()
@@ -192,11 +278,17 @@ class ViViTCSGOModel(nn.Module):
                 nn.init.constant_(module.bias, 0.0)
                 nn.init.constant_(module.weight, 1.0)
 
-    def forward(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, ...]:
+    def forward(
+        self,
+        x: torch.Tensor,
+        aux_input: Optional[torch.Tensor] = None,
+        return_features: bool = False
+    ) -> Tuple[torch.Tensor, ...]:
         """
         Args:
             x: (batch, timesteps, channels, height, width) - already preprocessed
             aux_input: Optional [(batch, timesteps, aux_dim) or (batch, aux_dim)] previous action vectors
+            return_features: If True, also return intermediate features for KD
 
         Returns:
             Tuple of (keys, clicks, mouse_x, mouse_y, value)
@@ -206,13 +298,13 @@ class ViViTCSGOModel(nn.Module):
 
         # Spatial encoding: extract features from each frame using ViT
         x_btchw = x.view(b * t, c, h, w)  # (B*T, C, H, W)
-        frame_features = self.spatial_encoder(x_btchw)  # (B*T, 768)
-        frame_seq = frame_features.view(b, t, 768)  # (B, T, 768)
+        frame_features = self.spatial_encoder(x_btchw)  # (B*T, D)
+        frame_seq = frame_features.view(b, t, self.spatial_dim)  # (B, T, D)
 
         # Temporal encoding with positional embeddings
-        pos_t = _build_sincos_1d_position_embedding(t, 768, frame_seq.device)
-        temporal_in = self.temporal_input_norm(frame_seq + pos_t)  # (B, T, 768)
-        temporal_out = self.temporal_encoder(temporal_in)  # (B, T, 768)
+        pos_t = _build_sincos_1d_position_embedding(t, self.spatial_dim, frame_seq.device)
+        temporal_in = self.temporal_input_norm(frame_seq + pos_t)  # (B, T, D)
+        temporal_out = self.temporal_encoder(temporal_in)  # (B, T, D)
 
         # Handle auxiliary input
         if self.aux_input_on and aux_input is not None:
@@ -239,10 +331,21 @@ class ViViTCSGOModel(nn.Module):
         mouse_y_out = self.softmax(self.mouse_y_output(shared))
         value_out = self.value_output(shared)
 
-        return keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out
+        if return_features:
+            features: Dict[str, torch.Tensor] = {
+                'frame_seq': frame_seq,          # (B, T, D_student_or_teacher)
+                'temporal_out': temporal_out,    # (B, T, D_student_or_teacher)
+            }
+            return keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out, features
+        else:
+            return keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out
 
     def get_output_concatenated(self, x: torch.Tensor, aux_input: Optional[torch.Tensor] = None) -> torch.Tensor:
-        keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = self.forward(x, aux_input)
+        outs = self.forward(x, aux_input)
+        if isinstance(outs, tuple) and len(outs) == 6:
+            keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out, _ = outs
+        else:
+            keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = outs
         return torch.cat([keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out], dim=-1)
 
 

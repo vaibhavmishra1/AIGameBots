@@ -1,0 +1,12 @@
+epoch 1 step 5 | loss 25.4037 | Lclk_acc 0.867 m_x_acc 0.060 m_y_acc 0.347 wasd_acc 0.608
+epoch 1 step 10 | loss 21.3537 | Lclk_acc 0.887 m_x_acc 0.343 m_y_acc 0.429 wasd_acc 0.794
+epoch 1 step 15 | loss 20.2970 | Lclk_acc 0.888 m_x_acc 0.310 m_y_acc 0.424 wasd_acc 0.809
+epoch 1 step 20 | loss 19.3882 | Lclk_acc 0.883 m_x_acc 0.383 m_y_acc 0.457 wasd_acc 0.807
+epoch 1 step 25 | loss 19.0259 | Lclk_acc 0.881 m_x_acc 0.319 m_y_acc 0.397 wasd_acc 0.821
+epoch 1 step 30 | loss 17.8166 | Lclk_acc 0.904 m_x_acc 0.388 m_y_acc 0.459 wasd_acc 0.818
+epoch 1 step 35 | loss 17.5236 | Lclk_acc 0.859 m_x_acc 0.392 m_y_acc 0.467 wasd_acc 0.831
+epoch 1 step 40 | loss 17.1263 | Lclk_acc 0.922 m_x_acc 0.389 m_y_acc 0.462 wasd_acc 0.851
+epoch 1 step 45 | loss 17.2422 | Lclk_acc 0.898 m_x_acc 0.374 m_y_acc 0.451 wasd_acc 0.853
+epoch 1 step 50 | loss 17.1167 | Lclk_acc 0.880 m_x_acc 0.368 m_y_acc 0.426 wasd_acc 0.857
+epoch 1 step 55 | loss 17.3737 | Lclk_acc 0.869 m_x_acc 0.319 m_y_acc 0.400 wasd_acc 0.847
+epoch 1 done in 211.0s | train_loss 19.2560 | val_loss 4.3459 | Lclk_acc 0.897 m_x_acc 0.355 m_y_acc 0.440 wasd_acc 0.859 crit_mse 49.517
