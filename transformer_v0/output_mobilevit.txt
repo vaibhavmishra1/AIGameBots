@@ -1,0 +1,47 @@
+epoch 1 step 10 | loss 7.2306 | Lclk_acc 0.853 m_x_acc 0.041 m_y_acc 0.062 wasd_acc 0.300 | lr 0.000003
+epoch 1 step 20 | loss 7.0861 | Lclk_acc 0.872 m_x_acc 0.123 m_y_acc 0.064 wasd_acc 0.411 | lr 0.000006
+epoch 1 step 30 | loss 6.9671 | Lclk_acc 0.881 m_x_acc 0.152 m_y_acc 0.109 wasd_acc 0.535 | lr 0.000010
+epoch 1 step 40 | loss 6.8644 | Lclk_acc 0.886 m_x_acc 0.203 m_y_acc 0.195 wasd_acc 0.600 | lr 0.000013
+epoch 1 step 50 | loss 6.7717 | Lclk_acc 0.886 m_x_acc 0.234 m_y_acc 0.246 wasd_acc 0.639 | lr 0.000016
+epoch 1 step 60 | loss 6.6635 | Lclk_acc 0.888 m_x_acc 0.257 m_y_acc 0.280 wasd_acc 0.665 | lr 0.000019
+epoch 1 step 70 | loss 6.5509 | Lclk_acc 0.888 m_x_acc 0.273 m_y_acc 0.303 wasd_acc 0.684 | lr 0.000022
+epoch 1 done in 182.1s | train_loss 6.4735 | val_loss 5.8932 | Lclk_acc 0.876 m_x_acc 0.278 m_y_acc 0.394 wasd_acc 0.800
+Saved best model (loss) with val_loss=5.8932
+Saved best model (mouse) with avg_mouse_acc=0.3359
+epoch 2 step 10 | loss 5.6376 | Lclk_acc 0.895 m_x_acc 0.406 m_y_acc 0.479 wasd_acc 0.814 | lr 0.000028
+epoch 2 step 20 | loss 5.6535 | Lclk_acc 0.902 m_x_acc 0.378 m_y_acc 0.458 wasd_acc 0.816 | lr 0.000031
+epoch 2 step 30 | loss 5.6431 | Lclk_acc 0.906 m_x_acc 0.371 m_y_acc 0.452 wasd_acc 0.823 | lr 0.000035
+epoch 2 step 40 | loss 5.6243 | Lclk_acc 0.912 m_x_acc 0.369 m_y_acc 0.453 wasd_acc 0.827 | lr 0.000038
+epoch 2 step 50 | loss 5.6131 | Lclk_acc 0.917 m_x_acc 0.367 m_y_acc 0.451 wasd_acc 0.831 | lr 0.000041
+epoch 2 step 60 | loss 5.5984 | Lclk_acc 0.922 m_x_acc 0.368 m_y_acc 0.451 wasd_acc 0.835 | lr 0.000044
+epoch 2 step 70 | loss 5.5868 | Lclk_acc 0.925 m_x_acc 0.368 m_y_acc 0.453 wasd_acc 0.839 | lr 0.000047
+epoch 2 done in 162.6s | train_loss 5.5828 | val_loss 5.6162 | Lclk_acc 0.969 m_x_acc 0.278 m_y_acc 0.394 wasd_acc 0.888
+Saved best model (loss) with val_loss=5.6162
+epoch 3 step 10 | loss 5.4486 | Lclk_acc 0.955 m_x_acc 0.389 m_y_acc 0.471 wasd_acc 0.880 | lr 0.000050
+epoch 3 step 20 | loss 5.4526 | Lclk_acc 0.955 m_x_acc 0.383 m_y_acc 0.468 wasd_acc 0.881 | lr 0.000050
+epoch 3 step 30 | loss 5.4679 | Lclk_acc 0.956 m_x_acc 0.373 m_y_acc 0.459 wasd_acc 0.885 | lr 0.000050
+epoch 3 step 40 | loss 5.4690 | Lclk_acc 0.956 m_x_acc 0.371 m_y_acc 0.455 wasd_acc 0.889 | lr 0.000050
+epoch 3 step 50 | loss 5.4739 | Lclk_acc 0.956 m_x_acc 0.367 m_y_acc 0.452 wasd_acc 0.891 | lr 0.000050
+epoch 3 step 60 | loss 5.4714 | Lclk_acc 0.956 m_x_acc 0.366 m_y_acc 0.452 wasd_acc 0.894 | lr 0.000050
+epoch 3 step 70 | loss 5.4669 | Lclk_acc 0.957 m_x_acc 0.367 m_y_acc 0.452 wasd_acc 0.896 | lr 0.000050
+epoch 3 done in 154.4s | train_loss 5.4681 | val_loss 5.5670 | Lclk_acc 0.967 m_x_acc 0.278 m_y_acc 0.394 wasd_acc 0.916
+Saved best model (loss) with val_loss=5.5670
+epoch 4 step 10 | loss 5.4433 | Lclk_acc 0.956 m_x_acc 0.366 m_y_acc 0.457 wasd_acc 0.916 | lr 0.000050
+epoch 4 step 20 | loss 5.4405 | Lclk_acc 0.958 m_x_acc 0.367 m_y_acc 0.452 wasd_acc 0.920 | lr 0.000050
+epoch 4 step 30 | loss 5.4329 | Lclk_acc 0.958 m_x_acc 0.370 m_y_acc 0.453 wasd_acc 0.926 | lr 0.000050
+epoch 4 step 40 | loss 5.4283 | Lclk_acc 0.959 m_x_acc 0.370 m_y_acc 0.454 wasd_acc 0.930 | lr 0.000050
+epoch 4 step 50 | loss 5.4256 | Lclk_acc 0.958 m_x_acc 0.370 m_y_acc 0.455 wasd_acc 0.935 | lr 0.000050
+epoch 4 step 60 | loss 5.4228 | Lclk_acc 0.958 m_x_acc 0.370 m_y_acc 0.455 wasd_acc 0.939 | lr 0.000050
+epoch 4 step 70 | loss 5.4241 | Lclk_acc 0.959 m_x_acc 0.367 m_y_acc 0.453 wasd_acc 0.942 | lr 0.000050
+epoch 4 done in 154.1s | train_loss 5.4280 | val_loss 5.5411 | Lclk_acc 0.965 m_x_acc 0.278 m_y_acc 0.394 wasd_acc 0.965
+Saved best model (loss) with val_loss=5.5411
+epoch 5 step 10 | loss 5.3887 | Lclk_acc 0.958 m_x_acc 0.387 m_y_acc 0.463 wasd_acc 0.962 | lr 0.000050
+epoch 5 step 20 | loss 5.4088 | Lclk_acc 0.960 m_x_acc 0.368 m_y_acc 0.454 wasd_acc 0.962 | lr 0.000050
+epoch 5 step 30 | loss 5.4002 | Lclk_acc 0.960 m_x_acc 0.371 m_y_acc 0.463 wasd_acc 0.963 | lr 0.000050
+epoch 5 step 40 | loss 5.3965 | Lclk_acc 0.962 m_x_acc 0.367 m_y_acc 0.465 wasd_acc 0.963 | lr 0.000050
+epoch 5 step 50 | loss 5.3948 | Lclk_acc 0.960 m_x_acc 0.369 m_y_acc 0.468 wasd_acc 0.963 | lr 0.000049
+epoch 5 step 60 | loss 5.3957 | Lclk_acc 0.959 m_x_acc 0.368 m_y_acc 0.467 wasd_acc 0.963 | lr 0.000049
+epoch 5 step 70 | loss 5.3980 | Lclk_acc 0.959 m_x_acc 0.366 m_y_acc 0.467 wasd_acc 0.963 | lr 0.000049
+epoch 5 done in 154.1s | train_loss 5.3973 | val_loss 5.5022 | Lclk_acc 0.967 m_x_acc 0.278 m_y_acc 0.422 wasd_acc 0.966
+Saved best model (loss) with val_loss=5.5022
+Saved best model (mouse) with avg_mouse_acc=0.3500

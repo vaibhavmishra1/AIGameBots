@@ -384,7 +384,6 @@ class MobileViTTemporalModel(nn.Module):
                 nn.Conv2d(spatial_dim, 64, 1),
                 nn.ReLU(),
                 nn.Conv2d(64, 1, 1),
-                nn.Softmax(dim=-1)  # Softmax over spatial positions
             )
         
         # Project spatial features for temporal model
@@ -468,6 +467,7 @@ class MobileViTTemporalModel(nn.Module):
             B_T, C_s, H_s, W_s = spatial_features.shape
             attention_weights = self.spatial_attention(spatial_features)  # (B*T, 1, H', W')
             attention_weights = attention_weights.view(B_T, 1, -1)  # (B*T, 1, H'*W')
+            attention_weights = F.softmax(attention_weights, dim=-1)
             spatial_flat = spatial_features.view(B_T, C_s, -1)  # (B*T, C, H'*W')
             pooled_features = (spatial_flat * attention_weights).sum(dim=-1)  # (B*T, C)
         elif self.spatial_pool_type == 'avg':

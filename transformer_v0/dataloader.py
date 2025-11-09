@@ -72,7 +72,9 @@ class CSGODataset(Dataset):
         ID = self.data_list[index]
         ID = ID.split('-')
         file_num = int(ID[0])
-        frame_num = int(ID[1]) + np.random.randint(0, self.n_jitter)
+        frame_num = int(ID[1])
+        if self.n_jitter > 0:
+            frame_num += np.random.randint(0, self.n_jitter)
         frame_num = np.minimum(frame_num, 999 - N_TIMESTEPS)
         frame_num = np.maximum(frame_num, 0)
 
@@ -365,7 +367,8 @@ def create_data_loaders(
     pin_memory: bool = True,
     n_jitter: int = 20,
     is_mirror: bool = False,
-    transform: bool = True
+    transform: bool = True,
+    transform_val: bool = None
 ) -> CSGODataLoader:
     """
     Create multiple data loaders for training (similar to TensorFlow implementation).
@@ -380,11 +383,15 @@ def create_data_loaders(
         pin_memory: Whether to pin memory for GPU training
         n_jitter: Number of frames to randomly offset by
         is_mirror: Whether to apply mirroring augmentation
-        transform: Whether to apply data augmentation
+        transform: Whether to apply data augmentation (train)
+        transform_val: Whether to apply augmentation for validation (default: False)
 
     Returns:
         Tuple of 5 data loaders (4 for subselection, 1 full)
     """
+    # Default: disable validation-time augmentation unless explicitly requested
+    if transform_val is None:
+        transform_val = False
     data_list_full = create_data_lists(
         starting_num, highest_num, N_TIMESTEPS, n_jitter
     )
@@ -392,8 +399,8 @@ def create_data_loaders(
 
 
     partition_full = {
-        'train_full': data_list_full[:int(len(data_list_full) * 1.0)],
-        'validation_full': data_list_full[int(len(data_list_full) * 0.995):]
+        'train_full': data_list_full[:int(len(data_list_full) * 0.95)],
+        'validation_full': data_list_full[int(len(data_list_full) * 0.95):]
     }
     training_loader_full = CSGODataLoader(
         data_list=partition_full['train_full'],
@@ -410,13 +417,14 @@ def create_data_loaders(
     validation_loader_full = CSGODataLoader(
         data_list=partition_full['validation_full'],
         batch_size=batch_size,
-        shuffle=shuffle,
+        shuffle=False,
         num_workers=num_workers,
         pin_memory=pin_memory,
         folder_name=folder_name,
-        n_jitter=n_jitter,
-        is_mirror=is_mirror,
-        transform=transform
+        # Avoid jitter/mirror/augmentations for validation to get stable metrics
+        n_jitter=0,
+        is_mirror=False,
+        transform=transform_val
     )
     
     return training_loader_full, validation_loader_full

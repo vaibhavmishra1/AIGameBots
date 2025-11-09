@@ -37,6 +37,17 @@ def bce_from_probs(pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return F.binary_cross_entropy(pred_f32, target_f32, reduction='mean')
 
 
+def categorical_ce_from_probs(pred_probs: torch.Tensor, target_onehot: torch.Tensor) -> torch.Tensor:
+    """
+    Cross-entropy when the model outputs probabilities (already softmaxed)
+    and targets are one-hot. This mirrors the helper used in the ViViT trainer.
+    """
+    eps = 1e-8
+    pred_probs = pred_probs.clamp(min=eps, max=1.0)
+    loss = -(target_onehot * pred_probs.log()).sum(dim=-1)
+    return loss.mean()
+
+
 def create_optimizer_and_scheduler(model, args, steps_per_epoch):
     """Create optimizer with proper learning rate scheduling."""
     
@@ -141,20 +152,29 @@ def compute_loss(
     loss_clicks = loss_lclick + loss_rclick * 0.5
     
     # Mouse movements: use cross-entropy
-    # Reshape for cross-entropy loss
-    B, T = mouse_x_out.shape[:2]
-    loss_mouse_x = F.cross_entropy(
-        mouse_x_out.reshape(-1, n_mouse_x),
-        mouse_x_true.argmax(dim=-1).reshape(-1),
-        label_smoothing=0.05  # Add label smoothing
-    )
-    loss_mouse_y = F.cross_entropy(
-        mouse_y_out.reshape(-1, n_mouse_y),
-        mouse_y_true.argmax(dim=-1).reshape(-1),
-        label_smoothing=0.05
-    )
+    # IMPORTANT: Our heads already output probabilities via softmax.
+    # Use CE on probabilities (optionally mixed with EMD) instead of CE on logits.
+    # Flatten (B, T, C) -> (B*T, C)
+    mx_pred = mouse_x_out.reshape(-1, n_mouse_x)
+    mx_true = mouse_x_true.reshape(-1, n_mouse_x)
+    my_pred = mouse_y_out.reshape(-1, n_mouse_y)
+    my_true = mouse_y_true.reshape(-1, n_mouse_y)
+    # CE component
+    ce_x = categorical_ce_from_probs(mx_pred, mx_true)
+    ce_y = categorical_ce_from_probs(my_pred, my_true)
+    # EMD (Wasserstein-1) component across class CDFs (stabilizes small shifts)
+    cdf_pred_x = torch.cumsum(mx_pred, dim=-1)
+    cdf_true_x = torch.cumsum(mx_true, dim=-1)
+    cdf_pred_y = torch.cumsum(my_pred, dim=-1)
+    cdf_true_y = torch.cumsum(my_true, dim=-1)
+    emd_x = (cdf_pred_x - cdf_true_x).abs().mean()
+    emd_y = (cdf_pred_y - cdf_true_y).abs().mean()
+    alpha = 0.2
+    loss_mouse_x = alpha * emd_x + (1.0 - alpha) * ce_x
+    loss_mouse_y = alpha * emd_y + (1.0 - alpha) * ce_y
     
     # Value function: TD loss
+    T = value_out.shape[1]
     if T > 1:
         v_t = value_out[:, :-1, :]
         v_tp1 = value_out[:, 1:, :]
@@ -511,7 +531,7 @@ def parse_args():
                         help="First file number in dataset")
     parser.add_argument('--highest_num', type=int, default=190,
                         help="Last file number in dataset")
-    parser.add_argument('--n_jitter', type=int, default=1,
+    parser.add_argument('--n_jitter', type=int, default=0,
                         help="Temporal jitter for data augmentation")
     parser.add_argument('--is_mirror', action='store_true',
                         help="Enable mirror augmentation")
