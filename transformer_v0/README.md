@@ -67,17 +67,7 @@ model.set_stateful(True)
 - Run KD with a compact student:
 ```bash
 cd transformer_v0
-python3 train.py \
-  --kd \
-  --student_model deit_tiny \  
-  --teacher_ckpt /root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt \
-  --batch_size 10 \
-  --epochs 40 \
-  --lr 5e-5 \
-  --starting_num 2 \
-  --highest_num 190 \
-  --data_dir /root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/ \
-  --use_prev_actions
+python3 train.py --kd --student_model deit_tiny --teacher_ckpt /root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt --lr 5e-5  --use_prev_actions
 ```
 - KD hyperparameters:
   - `--alpha_kd` (resp KD weight, default 1.0)
