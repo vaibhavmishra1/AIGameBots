@@ -47,6 +47,18 @@ def mse(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
     return F.mse_loss(a, b, reduction='mean')
 
 
+def cosine_loss(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:
+    """
+    Cosine distance loss for feature alignment.
+    Expects shape (..., D); computes 1 - cosine_similarity along last dim and averages.
+    """
+    # Flatten any leading dims into one for similarity calculation per vector
+    if a.dim() != b.dim():
+        raise ValueError("cosine_loss tensors must have same number of dimensions")
+    # Compute per-vector cosine similarity along last dim, then average
+    cos_sim = F.cosine_similarity(a, b, dim=-1)
+    return (1.0 - cos_sim).mean()
+
 def warmup_factor(epoch: int, warmup_epochs: int) -> float:
     """
     Linear warmup factor in [0,1] across warmup epochs.

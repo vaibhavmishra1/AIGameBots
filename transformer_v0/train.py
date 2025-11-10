@@ -17,7 +17,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Counter-Strike_Be
 from dataloader import create_data_loaders  # noqa: E402
 
 from model import create_vivit_model  # noqa: E402
-from distill_losses import bce_probs as kd_bce_probs, kl_divergence_probs as kd_kl_probs, mse as kd_mse, warmup_factor  # noqa: E402
+from distill_losses import (
+    bce_probs as kd_bce_probs,
+    kl_divergence_probs as kd_kl_probs,
+    mse as kd_mse,
+    cosine_loss as kd_cosine,
+    warmup_factor,
+)  # noqa: E402
 
 # Local copies of loss/metrics (copied from pytorch_implementatiion/train.py to avoid cross-package deps)
 from config import (
@@ -438,17 +444,16 @@ def train(args: argparse.Namespace) -> None:
                     # Supervised loss on student
                     loss_sup, _ = compute_custom_loss((s_keys, s_clicks, s_mx, s_my, s_val), batch_y)
                     # Response KD
-                    loss_kd_resp = (
-                        kd_bce_probs(s_keys, t_keys) +
-                        kd_bce_probs(s_clicks, t_clicks) +
-                        kd_kl_probs(t_mx, s_mx, temperature=args.temp_kd) +
-                        kd_kl_probs(t_my, s_my, temperature=args.temp_kd) +
-                        kd_mse(s_val, t_val)
-                    )
+                    loss_kd_keys = kd_bce_probs(s_keys, t_keys)
+                    loss_kd_clicks = kd_bce_probs(s_clicks, t_clicks)
+                    loss_kd_mx = kd_kl_probs(t_mx, s_mx, temperature=args.temp_kd)
+                    loss_kd_my = kd_kl_probs(t_my, s_my, temperature=args.temp_kd)
+                    # Exclude value KD by default (can be noisy/unstable across datasets)
+                    loss_kd_resp = loss_kd_keys + loss_kd_clicks + loss_kd_mx + loss_kd_my
                     # Feature KD (project student->teacher width where needed)
                     s_frame_aligned = model.proj_s2t_frame(s_feats['frame_seq'])
                     s_temp_aligned = model.proj_s2t_temp(s_feats['temporal_out'])
-                    loss_kd_feat = kd_mse(s_frame_aligned, t_feats['frame_seq']) + kd_mse(s_temp_aligned, t_feats['temporal_out'])
+                    loss_kd_feat = kd_cosine(s_frame_aligned, t_feats['frame_seq']) + kd_cosine(s_temp_aligned, t_feats['temporal_out'])
                     # Warmup
                     kd_warm = warmup_factor(epoch, args.kd_warmup_epochs)
                     loss = loss_sup + kd_warm * (args.alpha_kd * loss_kd_resp + args.beta_kd * loss_kd_feat)
@@ -472,11 +477,29 @@ def train(args: argparse.Namespace) -> None:
 
             if batch_idx % args.log_every == 0:
                 metrics = compute_metrics(outputs, batch_y)
-                msg = (
-                    f"epoch {epoch} step {batch_idx} | loss {loss.item():.4f} "
-                    f"| Lclk_acc {metrics['Lclk_acc']:.3f} m_x_acc {metrics['m_x_acc']:.3f} "
-                    f"m_y_acc {metrics['m_y_acc']:.3f} wasd_acc {metrics['wasd_acc']:.3f}"
-                )
+                if getattr(args, 'kd', False):
+                    # Guarded formatting if variables present
+                    try:
+                        msg = (
+                            f"epoch {epoch} step {batch_idx} | loss {loss.item():.4f} "
+                            f"| Lclk_acc {metrics['Lclk_acc']:.3f} m_x_acc {metrics['m_x_acc']:.3f} "
+                            f"m_y_acc {metrics['m_y_acc']:.3f} wasd_acc {metrics['wasd_acc']:.3f} "
+                            f"| KD_resp {loss_kd_resp.item():.3f} (keys {loss_kd_keys.item():.3f} clk {loss_kd_clicks.item():.3f} "
+                            f"mx {loss_kd_mx.item():.3f} my {loss_kd_my.item():.3f}) KD_feat {loss_kd_feat.item():.3f} "
+                            f"kw {kd_warm:.2f} a {args.alpha_kd:.2f} b {args.beta_kd:.2f} T {args.temp_kd:.1f}"
+                        )
+                    except Exception:
+                        msg = (
+                            f"epoch {epoch} step {batch_idx} | loss {loss.item():.4f} "
+                            f"| Lclk_acc {metrics['Lclk_acc']:.3f} m_x_acc {metrics['m_x_acc']:.3f} "
+                            f"m_y_acc {metrics['m_y_acc']:.3f} wasd_acc {metrics['wasd_acc']:.3f}"
+                        )
+                else:
+                    msg = (
+                        f"epoch {epoch} step {batch_idx} | loss {loss.item():.4f} "
+                        f"| Lclk_acc {metrics['Lclk_acc']:.3f} m_x_acc {metrics['m_x_acc']:.3f} "
+                        f"m_y_acc {metrics['m_y_acc']:.3f} wasd_acc {metrics['wasd_acc']:.3f}"
+                    )
                 print(msg)
 
         avg_train_loss = running_loss / max(running_batches, 1)
@@ -515,7 +538,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--model_name', type=str, default='vivit_vitb16', help="Model configuration name")
     parser.add_argument('--batch_size', type=int, default=10, help="Batch size")
     parser.add_argument('--epochs', type=int, default=40, help="Number of epochs")
-    parser.add_argument('--lr', type=float, default=5e-5, help="Learning rate")
+    parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--weight_decay', type=float, default=0.05, help="Weight decay for AdamW")
     parser.add_argument('--max_grad_norm', type=float, default=1.0, help="Maximum gradient norm for clipping")
     parser.add_argument('--loss_scale', type=float, default=1.0, help="Loss scaling factor for training stability")
@@ -542,10 +565,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--kd', action='store_true', help="Enable knowledge distillation training (teacher-student)")
     parser.add_argument('--teacher_ckpt', type=str, default='/root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt', help="Path to teacher checkpoint (.pt)")
     parser.add_argument('--student_model', type=str, default='deit_tiny', choices=['deit_tiny', 'mobilenet_small', 'vivit_vitb16'], help="Student spatial backbone")
-    parser.add_argument('--alpha_kd', type=float, default=1.0, help="Weight for response KD loss")
-    parser.add_argument('--beta_kd', type=float, default=0.5, help="Weight for feature KD loss")
-    parser.add_argument('--temp_kd', type=float, default=2.0, help="Temperature for KL distillation")
-    parser.add_argument('--kd_warmup_epochs', type=int, default=2, help="Warmup epochs for KD blending")
+    parser.add_argument('--alpha_kd', type=float, default=0.1, help="Weight for response KD loss")
+    parser.add_argument('--beta_kd', type=float, default=0.05, help="Weight for feature KD loss")
+    parser.add_argument('--temp_kd', type=float, default=4.0, help="Temperature for KL distillation")
+    parser.add_argument('--kd_warmup_epochs', type=int, default=5, help="Warmup epochs for KD blending")
     parser.add_argument('--ema', action='store_true', help="Enable EMA on student (optional, not required)")
     return parser.parse_args()
 

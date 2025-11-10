@@ -1,12 +1,513 @@
-epoch 1 step 5 | loss 25.4037 | Lclk_acc 0.867 m_x_acc 0.060 m_y_acc 0.347 wasd_acc 0.608
-epoch 1 step 10 | loss 21.3537 | Lclk_acc 0.887 m_x_acc 0.343 m_y_acc 0.429 wasd_acc 0.794
-epoch 1 step 15 | loss 20.2970 | Lclk_acc 0.888 m_x_acc 0.310 m_y_acc 0.424 wasd_acc 0.809
-epoch 1 step 20 | loss 19.3882 | Lclk_acc 0.883 m_x_acc 0.383 m_y_acc 0.457 wasd_acc 0.807
-epoch 1 step 25 | loss 19.0259 | Lclk_acc 0.881 m_x_acc 0.319 m_y_acc 0.397 wasd_acc 0.821
-epoch 1 step 30 | loss 17.8166 | Lclk_acc 0.904 m_x_acc 0.388 m_y_acc 0.459 wasd_acc 0.818
-epoch 1 step 35 | loss 17.5236 | Lclk_acc 0.859 m_x_acc 0.392 m_y_acc 0.467 wasd_acc 0.831
-epoch 1 step 40 | loss 17.1263 | Lclk_acc 0.922 m_x_acc 0.389 m_y_acc 0.462 wasd_acc 0.851
-epoch 1 step 45 | loss 17.2422 | Lclk_acc 0.898 m_x_acc 0.374 m_y_acc 0.451 wasd_acc 0.853
-epoch 1 step 50 | loss 17.1167 | Lclk_acc 0.880 m_x_acc 0.368 m_y_acc 0.426 wasd_acc 0.857
-epoch 1 step 55 | loss 17.3737 | Lclk_acc 0.869 m_x_acc 0.319 m_y_acc 0.400 wasd_acc 0.847
-epoch 1 done in 211.0s | train_loss 19.2560 | val_loss 4.3459 | Lclk_acc 0.897 m_x_acc 0.355 m_y_acc 0.440 wasd_acc 0.859 crit_mse 49.517
+epoch 1 step 5 | loss 7.5950 | Lclk_acc 0.902 m_x_acc 0.295 m_y_acc 0.136 wasd_acc 0.770 | KD_resp 53.048 (keys 0.474 clk 0.256 mx 26.140 my 26.178) KD_feat 1.996 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 10 | loss 5.9212 | Lclk_acc 0.886 m_x_acc 0.392 m_y_acc 0.468 wasd_acc 0.810 | KD_resp 47.842 (keys 0.374 clk 0.200 mx 24.581 my 22.686) KD_feat 1.972 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 15 | loss 5.5169 | Lclk_acc 0.907 m_x_acc 0.363 m_y_acc 0.438 wasd_acc 0.829 | KD_resp 46.748 (keys 0.348 clk 0.169 mx 24.105 my 22.126) KD_feat 1.921 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 20 | loss 5.3121 | Lclk_acc 0.898 m_x_acc 0.373 m_y_acc 0.452 wasd_acc 0.834 | KD_resp 45.913 (keys 0.339 clk 0.158 mx 23.873 my 21.543) KD_feat 1.880 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 25 | loss 4.9648 | Lclk_acc 0.900 m_x_acc 0.407 m_y_acc 0.476 wasd_acc 0.872 | KD_resp 44.514 (keys 0.316 clk 0.131 mx 23.249 my 20.819) KD_feat 1.837 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 30 | loss 5.0027 | Lclk_acc 0.894 m_x_acc 0.371 m_y_acc 0.443 wasd_acc 0.867 | KD_resp 43.824 (keys 0.308 clk 0.129 mx 22.803 my 20.584) KD_feat 1.813 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 35 | loss 4.8659 | Lclk_acc 0.898 m_x_acc 0.383 m_y_acc 0.451 wasd_acc 0.878 | KD_resp 43.594 (keys 0.286 clk 0.120 mx 22.789 my 20.398) KD_feat 1.762 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 40 | loss 4.8846 | Lclk_acc 0.940 m_x_acc 0.353 m_y_acc 0.438 wasd_acc 0.859 | KD_resp 44.358 (keys 0.292 clk 0.086 mx 23.380 my 20.600) KD_feat 1.717 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 45 | loss 4.7217 | Lclk_acc 0.921 m_x_acc 0.360 m_y_acc 0.443 wasd_acc 0.882 | KD_resp 42.594 (keys 0.271 clk 0.097 mx 22.547 my 19.680) KD_feat 1.695 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 50 | loss 4.5799 | Lclk_acc 0.913 m_x_acc 0.401 m_y_acc 0.481 wasd_acc 0.881 | KD_resp 41.467 (keys 0.264 clk 0.106 mx 21.795 my 19.302) KD_feat 1.665 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 step 55 | loss 4.6166 | Lclk_acc 0.919 m_x_acc 0.370 m_y_acc 0.462 wasd_acc 0.865 | KD_resp 41.584 (keys 0.275 clk 0.102 mx 21.866 my 19.341) KD_feat 1.626 kw 0.20 a 0.10 b 0.05 T 4.0
+epoch 1 done in 210.2s | train_loss 5.5580 | val_loss 3.6817 | Lclk_acc 0.925 m_x_acc 0.365 m_y_acc 0.461 wasd_acc 0.872 crit_mse 6.548
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 2 step 5 | loss 5.7801 | Lclk_acc 0.910 m_x_acc 0.313 m_y_acc 0.406 wasd_acc 0.854 | KD_resp 42.426 (keys 0.277 clk 0.096 mx 22.426 my 19.627) KD_feat 1.593 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 10 | loss 5.4719 | Lclk_acc 0.920 m_x_acc 0.378 m_y_acc 0.422 wasd_acc 0.879 | KD_resp 41.442 (keys 0.255 clk 0.095 mx 21.882 my 19.209) KD_feat 1.553 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 15 | loss 5.0398 | Lclk_acc 0.932 m_x_acc 0.409 m_y_acc 0.483 wasd_acc 0.896 | KD_resp 38.605 (keys 0.241 clk 0.089 mx 20.244 my 18.031) KD_feat 1.539 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 20 | loss 5.4326 | Lclk_acc 0.921 m_x_acc 0.368 m_y_acc 0.457 wasd_acc 0.872 | KD_resp 41.840 (keys 0.253 clk 0.094 mx 21.979 my 19.514) KD_feat 1.487 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 25 | loss 5.4599 | Lclk_acc 0.927 m_x_acc 0.351 m_y_acc 0.396 wasd_acc 0.876 | KD_resp 41.510 (keys 0.252 clk 0.091 mx 21.624 my 19.543) KD_feat 1.482 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 30 | loss 5.0790 | Lclk_acc 0.942 m_x_acc 0.410 m_y_acc 0.478 wasd_acc 0.887 | KD_resp 38.467 (keys 0.238 clk 0.085 mx 20.184 my 17.960) KD_feat 1.471 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 35 | loss 5.4115 | Lclk_acc 0.917 m_x_acc 0.339 m_y_acc 0.408 wasd_acc 0.878 | KD_resp 40.135 (keys 0.245 clk 0.103 mx 20.940 my 18.847) KD_feat 1.436 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 40 | loss 5.2565 | Lclk_acc 0.916 m_x_acc 0.371 m_y_acc 0.432 wasd_acc 0.883 | KD_resp 38.870 (keys 0.241 clk 0.099 mx 20.360 my 18.170) KD_feat 1.407 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 45 | loss 4.6756 | Lclk_acc 0.938 m_x_acc 0.431 m_y_acc 0.523 wasd_acc 0.888 | KD_resp 36.280 (keys 0.240 clk 0.082 mx 18.955 my 17.004) KD_feat 1.393 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 50 | loss 4.8309 | Lclk_acc 0.934 m_x_acc 0.422 m_y_acc 0.496 wasd_acc 0.897 | KD_resp 37.158 (keys 0.231 clk 0.080 mx 19.358 my 17.489) KD_feat 1.349 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 step 55 | loss 5.1480 | Lclk_acc 0.929 m_x_acc 0.396 m_y_acc 0.449 wasd_acc 0.890 | KD_resp 39.607 (keys 0.234 clk 0.083 mx 20.684 my 18.607) KD_feat 1.334 kw 0.40 a 0.10 b 0.05 T 4.0
+epoch 2 done in 214.2s | train_loss 5.1423 | val_loss 3.3571 | Lclk_acc 0.941 m_x_acc 0.406 m_y_acc 0.467 wasd_acc 0.893 crit_mse 6.455
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 3 step 5 | loss 5.6074 | Lclk_acc 0.961 m_x_acc 0.395 m_y_acc 0.492 wasd_acc 0.890 | KD_resp 37.533 (keys 0.234 clk 0.056 mx 19.692 my 17.552) KD_feat 1.316 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 10 | loss 5.8374 | Lclk_acc 0.940 m_x_acc 0.371 m_y_acc 0.447 wasd_acc 0.880 | KD_resp 38.512 (keys 0.232 clk 0.065 mx 20.170 my 18.045) KD_feat 1.310 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 15 | loss 5.2900 | Lclk_acc 0.941 m_x_acc 0.444 m_y_acc 0.485 wasd_acc 0.896 | KD_resp 34.425 (keys 0.220 clk 0.078 mx 18.003 my 16.124) KD_feat 1.286 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 20 | loss 5.3517 | Lclk_acc 0.942 m_x_acc 0.429 m_y_acc 0.505 wasd_acc 0.922 | KD_resp 35.804 (keys 0.207 clk 0.071 mx 18.705 my 16.821) KD_feat 1.250 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 25 | loss 5.8454 | Lclk_acc 0.939 m_x_acc 0.375 m_y_acc 0.434 wasd_acc 0.877 | KD_resp 37.618 (keys 0.237 clk 0.073 mx 19.645 my 17.663) KD_feat 1.247 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 30 | loss 5.7304 | Lclk_acc 0.947 m_x_acc 0.407 m_y_acc 0.449 wasd_acc 0.897 | KD_resp 37.765 (keys 0.226 clk 0.071 mx 19.751 my 17.717) KD_feat 1.223 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 35 | loss 5.7735 | Lclk_acc 0.942 m_x_acc 0.368 m_y_acc 0.443 wasd_acc 0.890 | KD_resp 37.392 (keys 0.222 clk 0.074 mx 19.467 my 17.630) KD_feat 1.213 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 40 | loss 5.3511 | Lclk_acc 0.948 m_x_acc 0.411 m_y_acc 0.500 wasd_acc 0.900 | KD_resp 34.894 (keys 0.218 clk 0.063 mx 18.346 my 16.267) KD_feat 1.196 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 45 | loss 5.5483 | Lclk_acc 0.930 m_x_acc 0.402 m_y_acc 0.473 wasd_acc 0.891 | KD_resp 35.893 (keys 0.227 clk 0.080 mx 18.794 my 16.791) KD_feat 1.179 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 50 | loss 5.8269 | Lclk_acc 0.924 m_x_acc 0.375 m_y_acc 0.438 wasd_acc 0.899 | KD_resp 37.610 (keys 0.222 clk 0.092 mx 19.465 my 17.831) KD_feat 1.181 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 step 55 | loss 5.2687 | Lclk_acc 0.951 m_x_acc 0.466 m_y_acc 0.504 wasd_acc 0.916 | KD_resp 35.431 (keys 0.204 clk 0.061 mx 18.682 my 16.483) KD_feat 1.144 kw 0.60 a 0.10 b 0.05 T 4.0
+epoch 3 done in 213.0s | train_loss 5.5259 | val_loss 3.2185 | Lclk_acc 0.944 m_x_acc 0.424 m_y_acc 0.484 wasd_acc 0.900 crit_mse 7.108
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 4 step 5 | loss 6.0993 | Lclk_acc 0.946 m_x_acc 0.435 m_y_acc 0.490 wasd_acc 0.908 | KD_resp 35.020 (keys 0.215 clk 0.069 mx 18.292 my 16.443) KD_feat 1.144 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 10 | loss 5.6950 | Lclk_acc 0.960 m_x_acc 0.464 m_y_acc 0.509 wasd_acc 0.917 | KD_resp 32.527 (keys 0.200 clk 0.056 mx 16.883 my 15.388) KD_feat 1.121 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 15 | loss 5.7648 | Lclk_acc 0.931 m_x_acc 0.456 m_y_acc 0.521 wasd_acc 0.917 | KD_resp 32.463 (keys 0.200 clk 0.089 mx 16.795 my 15.379) KD_feat 1.109 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 20 | loss 5.8915 | Lclk_acc 0.953 m_x_acc 0.432 m_y_acc 0.488 wasd_acc 0.896 | KD_resp 33.301 (keys 0.216 clk 0.058 mx 17.475 my 15.552) KD_feat 1.104 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 25 | loss 5.7265 | Lclk_acc 0.962 m_x_acc 0.467 m_y_acc 0.513 wasd_acc 0.901 | KD_resp 32.835 (keys 0.210 clk 0.051 mx 17.115 my 15.459) KD_feat 1.098 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 30 | loss 5.4698 | Lclk_acc 0.963 m_x_acc 0.505 m_y_acc 0.536 wasd_acc 0.927 | KD_resp 32.407 (keys 0.194 clk 0.050 mx 16.854 my 15.310) KD_feat 1.066 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 35 | loss 5.7622 | Lclk_acc 0.950 m_x_acc 0.466 m_y_acc 0.500 wasd_acc 0.915 | KD_resp 32.404 (keys 0.202 clk 0.065 mx 16.775 my 15.362) KD_feat 1.082 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 40 | loss 5.3115 | Lclk_acc 0.948 m_x_acc 0.488 m_y_acc 0.526 wasd_acc 0.911 | KD_resp 29.710 (keys 0.198 clk 0.071 mx 15.327 my 14.113) KD_feat 1.047 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 45 | loss 5.7918 | Lclk_acc 0.940 m_x_acc 0.450 m_y_acc 0.515 wasd_acc 0.912 | KD_resp 33.293 (keys 0.204 clk 0.076 mx 17.269 my 15.744) KD_feat 1.071 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 50 | loss 5.8885 | Lclk_acc 0.956 m_x_acc 0.451 m_y_acc 0.489 wasd_acc 0.901 | KD_resp 34.257 (keys 0.211 clk 0.060 mx 17.883 my 16.104) KD_feat 1.069 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 step 55 | loss 5.4887 | Lclk_acc 0.948 m_x_acc 0.458 m_y_acc 0.528 wasd_acc 0.925 | KD_resp 31.140 (keys 0.191 clk 0.070 mx 16.174 my 14.706) KD_feat 1.033 kw 0.80 a 0.10 b 0.05 T 4.0
+epoch 4 done in 210.9s | train_loss 5.9779 | val_loss 3.1427 | Lclk_acc 0.950 m_x_acc 0.437 m_y_acc 0.485 wasd_acc 0.909 crit_mse 8.342
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 5 step 5 | loss 6.3876 | Lclk_acc 0.929 m_x_acc 0.455 m_y_acc 0.512 wasd_acc 0.915 | KD_resp 32.595 (keys 0.199 clk 0.088 mx 16.900 my 15.408) KD_feat 1.047 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 10 | loss 5.9978 | Lclk_acc 0.959 m_x_acc 0.490 m_y_acc 0.533 wasd_acc 0.926 | KD_resp 30.733 (keys 0.190 clk 0.057 mx 15.994 my 14.492) KD_feat 1.023 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 15 | loss 6.3818 | Lclk_acc 0.954 m_x_acc 0.454 m_y_acc 0.517 wasd_acc 0.900 | KD_resp 32.365 (keys 0.209 clk 0.059 mx 16.869 my 15.228) KD_feat 1.038 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 20 | loss 6.1350 | Lclk_acc 0.957 m_x_acc 0.475 m_y_acc 0.531 wasd_acc 0.921 | KD_resp 31.787 (keys 0.192 clk 0.054 mx 16.551 my 14.990) KD_feat 1.019 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 25 | loss 6.7655 | Lclk_acc 0.942 m_x_acc 0.410 m_y_acc 0.474 wasd_acc 0.905 | KD_resp 34.045 (keys 0.209 clk 0.066 mx 17.747 my 16.022) KD_feat 1.055 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 30 | loss 6.5649 | Lclk_acc 0.945 m_x_acc 0.447 m_y_acc 0.495 wasd_acc 0.919 | KD_resp 32.329 (keys 0.198 clk 0.074 mx 16.878 my 15.178) KD_feat 1.027 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 35 | loss 6.7330 | Lclk_acc 0.935 m_x_acc 0.414 m_y_acc 0.463 wasd_acc 0.909 | KD_resp 33.594 (keys 0.207 clk 0.078 mx 17.499 my 15.810) KD_feat 1.040 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 40 | loss 6.8068 | Lclk_acc 0.941 m_x_acc 0.424 m_y_acc 0.480 wasd_acc 0.911 | KD_resp 34.823 (keys 0.206 clk 0.070 mx 18.041 my 16.506) KD_feat 1.037 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 45 | loss 6.6444 | Lclk_acc 0.970 m_x_acc 0.410 m_y_acc 0.482 wasd_acc 0.906 | KD_resp 34.191 (keys 0.206 clk 0.043 mx 17.839 my 16.102) KD_feat 1.027 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 50 | loss 6.4463 | Lclk_acc 0.933 m_x_acc 0.426 m_y_acc 0.495 wasd_acc 0.914 | KD_resp 31.756 (keys 0.199 clk 0.078 mx 16.612 my 14.867) KD_feat 0.995 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 step 55 | loss 6.1233 | Lclk_acc 0.951 m_x_acc 0.465 m_y_acc 0.509 wasd_acc 0.915 | KD_resp 30.527 (keys 0.197 clk 0.067 mx 15.775 my 14.488) KD_feat 0.999 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 5 done in 210.8s | train_loss 6.4589 | val_loss 3.0855 | Lclk_acc 0.953 m_x_acc 0.446 m_y_acc 0.495 wasd_acc 0.915 crit_mse 9.453
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 6 step 5 | loss 6.4394 | Lclk_acc 0.968 m_x_acc 0.432 m_y_acc 0.490 wasd_acc 0.924 | KD_resp 32.838 (keys 0.190 clk 0.045 mx 16.898 my 15.706) KD_feat 1.019 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 10 | loss 6.5224 | Lclk_acc 0.937 m_x_acc 0.429 m_y_acc 0.483 wasd_acc 0.909 | KD_resp 32.556 (keys 0.202 clk 0.073 mx 16.777 my 15.504) KD_feat 1.009 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 15 | loss 6.4500 | Lclk_acc 0.959 m_x_acc 0.429 m_y_acc 0.496 wasd_acc 0.900 | KD_resp 33.242 (keys 0.205 clk 0.054 mx 17.315 my 15.668) KD_feat 1.008 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 20 | loss 6.0492 | Lclk_acc 0.962 m_x_acc 0.478 m_y_acc 0.535 wasd_acc 0.935 | KD_resp 31.107 (keys 0.184 clk 0.052 mx 16.143 my 14.728) KD_feat 0.973 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 25 | loss 6.2322 | Lclk_acc 0.956 m_x_acc 0.445 m_y_acc 0.519 wasd_acc 0.917 | KD_resp 31.606 (keys 0.199 clk 0.056 mx 16.473 my 14.879) KD_feat 0.987 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 30 | loss 6.3837 | Lclk_acc 0.949 m_x_acc 0.451 m_y_acc 0.504 wasd_acc 0.916 | KD_resp 32.490 (keys 0.200 clk 0.064 mx 16.937 my 15.289) KD_feat 0.979 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 35 | loss 6.2308 | Lclk_acc 0.960 m_x_acc 0.449 m_y_acc 0.518 wasd_acc 0.920 | KD_resp 31.642 (keys 0.197 clk 0.053 mx 16.527 my 14.865) KD_feat 0.982 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 40 | loss 6.3415 | Lclk_acc 0.942 m_x_acc 0.438 m_y_acc 0.491 wasd_acc 0.916 | KD_resp 32.018 (keys 0.198 clk 0.065 mx 16.645 my 15.110) KD_feat 0.984 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 45 | loss 6.0521 | Lclk_acc 0.951 m_x_acc 0.470 m_y_acc 0.514 wasd_acc 0.925 | KD_resp 30.654 (keys 0.192 clk 0.058 mx 15.919 my 14.486) KD_feat 0.954 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 50 | loss 6.3934 | Lclk_acc 0.953 m_x_acc 0.446 m_y_acc 0.488 wasd_acc 0.918 | KD_resp 32.372 (keys 0.198 clk 0.058 mx 16.721 my 15.396) KD_feat 0.974 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 step 55 | loss 6.1141 | Lclk_acc 0.962 m_x_acc 0.460 m_y_acc 0.517 wasd_acc 0.922 | KD_resp 31.223 (keys 0.195 clk 0.049 mx 16.120 my 14.859) KD_feat 0.948 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 6 done in 210.0s | train_loss 6.2807 | val_loss 3.0463 | Lclk_acc 0.957 m_x_acc 0.451 m_y_acc 0.505 wasd_acc 0.914 crit_mse 10.259
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 7 step 5 | loss 5.6386 | Lclk_acc 0.963 m_x_acc 0.504 m_y_acc 0.563 wasd_acc 0.934 | KD_resp 28.716 (keys 0.184 clk 0.051 mx 14.918 my 13.564) KD_feat 0.923 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 10 | loss 6.0793 | Lclk_acc 0.952 m_x_acc 0.472 m_y_acc 0.512 wasd_acc 0.928 | KD_resp 31.098 (keys 0.187 clk 0.057 mx 16.038 my 14.816) KD_feat 0.945 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 15 | loss 6.2241 | Lclk_acc 0.953 m_x_acc 0.443 m_y_acc 0.506 wasd_acc 0.930 | KD_resp 31.295 (keys 0.191 clk 0.064 mx 16.351 my 14.688) KD_feat 0.977 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 20 | loss 5.6532 | Lclk_acc 0.953 m_x_acc 0.510 m_y_acc 0.564 wasd_acc 0.944 | KD_resp 28.597 (keys 0.179 clk 0.054 mx 14.832 my 13.532) KD_feat 0.931 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 25 | loss 6.1506 | Lclk_acc 0.939 m_x_acc 0.459 m_y_acc 0.503 wasd_acc 0.932 | KD_resp 30.363 (keys 0.186 clk 0.071 mx 15.748 my 14.358) KD_feat 0.945 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 30 | loss 6.0775 | Lclk_acc 0.963 m_x_acc 0.435 m_y_acc 0.503 wasd_acc 0.928 | KD_resp 30.087 (keys 0.187 clk 0.054 mx 15.449 my 14.396) KD_feat 0.960 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 35 | loss 6.2785 | Lclk_acc 0.953 m_x_acc 0.444 m_y_acc 0.504 wasd_acc 0.926 | KD_resp 31.488 (keys 0.191 clk 0.058 mx 16.378 my 14.861) KD_feat 0.948 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 40 | loss 6.5147 | Lclk_acc 0.946 m_x_acc 0.408 m_y_acc 0.495 wasd_acc 0.918 | KD_resp 32.966 (keys 0.197 clk 0.068 mx 17.043 my 15.659) KD_feat 0.976 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 45 | loss 5.7010 | Lclk_acc 0.964 m_x_acc 0.496 m_y_acc 0.554 wasd_acc 0.933 | KD_resp 28.864 (keys 0.181 clk 0.047 mx 14.928 my 13.709) KD_feat 0.914 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 50 | loss 6.4676 | Lclk_acc 0.954 m_x_acc 0.442 m_y_acc 0.483 wasd_acc 0.924 | KD_resp 32.513 (keys 0.196 clk 0.056 mx 16.787 my 15.474) KD_feat 0.968 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 step 55 | loss 6.1142 | Lclk_acc 0.952 m_x_acc 0.470 m_y_acc 0.505 wasd_acc 0.929 | KD_resp 30.687 (keys 0.189 clk 0.066 mx 15.861 my 14.570) KD_feat 0.933 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 7 done in 213.6s | train_loss 6.1230 | val_loss 3.0166 | Lclk_acc 0.958 m_x_acc 0.453 m_y_acc 0.508 wasd_acc 0.926 crit_mse 12.094
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 8 step 5 | loss 5.9932 | Lclk_acc 0.960 m_x_acc 0.463 m_y_acc 0.535 wasd_acc 0.930 | KD_resp 30.634 (keys 0.188 clk 0.051 mx 15.889 my 14.507) KD_feat 0.944 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 10 | loss 6.3512 | Lclk_acc 0.958 m_x_acc 0.428 m_y_acc 0.498 wasd_acc 0.928 | KD_resp 32.209 (keys 0.189 clk 0.052 mx 16.709 my 15.259) KD_feat 0.962 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 15 | loss 5.7849 | Lclk_acc 0.952 m_x_acc 0.486 m_y_acc 0.552 wasd_acc 0.922 | KD_resp 28.804 (keys 0.192 clk 0.056 mx 14.950 my 13.607) KD_feat 0.914 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 20 | loss 6.2157 | Lclk_acc 0.956 m_x_acc 0.460 m_y_acc 0.501 wasd_acc 0.924 | KD_resp 31.547 (keys 0.192 clk 0.054 mx 16.337 my 14.965) KD_feat 0.954 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 25 | loss 6.3362 | Lclk_acc 0.946 m_x_acc 0.437 m_y_acc 0.493 wasd_acc 0.932 | KD_resp 31.850 (keys 0.192 clk 0.066 mx 16.700 my 14.893) KD_feat 0.956 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 30 | loss 5.8435 | Lclk_acc 0.961 m_x_acc 0.452 m_y_acc 0.535 wasd_acc 0.930 | KD_resp 29.517 (keys 0.181 clk 0.048 mx 15.297 my 13.990) KD_feat 0.932 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 35 | loss 6.0496 | Lclk_acc 0.954 m_x_acc 0.453 m_y_acc 0.526 wasd_acc 0.938 | KD_resp 30.386 (keys 0.183 clk 0.058 mx 15.934 my 14.211) KD_feat 0.944 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 40 | loss 6.2639 | Lclk_acc 0.968 m_x_acc 0.446 m_y_acc 0.494 wasd_acc 0.927 | KD_resp 31.402 (keys 0.192 clk 0.047 mx 16.278 my 14.886) KD_feat 0.959 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 45 | loss 6.3489 | Lclk_acc 0.959 m_x_acc 0.443 m_y_acc 0.500 wasd_acc 0.913 | KD_resp 31.860 (keys 0.206 clk 0.055 mx 16.558 my 15.041) KD_feat 0.964 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 50 | loss 5.8006 | Lclk_acc 0.956 m_x_acc 0.475 m_y_acc 0.530 wasd_acc 0.923 | KD_resp 28.916 (keys 0.189 clk 0.055 mx 15.056 my 13.616) KD_feat 0.910 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 step 55 | loss 5.8964 | Lclk_acc 0.951 m_x_acc 0.495 m_y_acc 0.542 wasd_acc 0.939 | KD_resp 29.889 (keys 0.185 clk 0.056 mx 15.573 my 14.074) KD_feat 0.928 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 8 done in 213.4s | train_loss 5.9974 | val_loss 2.9321 | Lclk_acc 0.959 m_x_acc 0.470 m_y_acc 0.520 wasd_acc 0.931 crit_mse 12.625
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 9 step 5 | loss 5.8319 | Lclk_acc 0.963 m_x_acc 0.469 m_y_acc 0.536 wasd_acc 0.920 | KD_resp 29.210 (keys 0.195 clk 0.048 mx 15.189 my 13.779) KD_feat 0.921 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 10 | loss 6.0498 | Lclk_acc 0.958 m_x_acc 0.466 m_y_acc 0.513 wasd_acc 0.941 | KD_resp 31.160 (keys 0.181 clk 0.054 mx 15.981 my 14.944) KD_feat 0.937 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 15 | loss 5.9120 | Lclk_acc 0.962 m_x_acc 0.462 m_y_acc 0.526 wasd_acc 0.942 | KD_resp 29.665 (keys 0.181 clk 0.049 mx 15.439 my 13.996) KD_feat 0.922 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 20 | loss 5.4947 | Lclk_acc 0.964 m_x_acc 0.511 m_y_acc 0.565 wasd_acc 0.934 | KD_resp 27.621 (keys 0.183 clk 0.044 mx 14.431 my 12.963) KD_feat 0.885 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 25 | loss 6.1013 | Lclk_acc 0.961 m_x_acc 0.445 m_y_acc 0.519 wasd_acc 0.932 | KD_resp 30.512 (keys 0.189 clk 0.049 mx 15.823 my 14.451) KD_feat 0.942 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 30 | loss 6.2233 | Lclk_acc 0.950 m_x_acc 0.436 m_y_acc 0.519 wasd_acc 0.935 | KD_resp 31.367 (keys 0.190 clk 0.060 mx 16.594 my 14.524) KD_feat 0.950 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 35 | loss 6.1450 | Lclk_acc 0.952 m_x_acc 0.428 m_y_acc 0.523 wasd_acc 0.933 | KD_resp 31.144 (keys 0.185 clk 0.060 mx 16.434 my 14.465) KD_feat 0.927 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 40 | loss 5.9322 | Lclk_acc 0.961 m_x_acc 0.472 m_y_acc 0.527 wasd_acc 0.939 | KD_resp 30.601 (keys 0.183 clk 0.049 mx 15.794 my 14.574) KD_feat 0.925 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 45 | loss 5.7500 | Lclk_acc 0.954 m_x_acc 0.484 m_y_acc 0.534 wasd_acc 0.943 | KD_resp 29.384 (keys 0.181 clk 0.063 mx 15.261 my 13.880) KD_feat 0.914 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 50 | loss 6.1035 | Lclk_acc 0.955 m_x_acc 0.456 m_y_acc 0.502 wasd_acc 0.933 | KD_resp 30.578 (keys 0.188 clk 0.055 mx 15.911 my 14.423) KD_feat 0.946 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 step 55 | loss 5.7378 | Lclk_acc 0.950 m_x_acc 0.514 m_y_acc 0.548 wasd_acc 0.942 | KD_resp 28.968 (keys 0.178 clk 0.060 mx 15.191 my 13.540) KD_feat 0.901 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 9 done in 208.3s | train_loss 5.8776 | val_loss 2.8262 | Lclk_acc 0.959 m_x_acc 0.474 m_y_acc 0.530 wasd_acc 0.939 crit_mse 13.033
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 10 step 5 | loss 6.3389 | Lclk_acc 0.954 m_x_acc 0.420 m_y_acc 0.480 wasd_acc 0.931 | KD_resp 31.379 (keys 0.192 clk 0.058 mx 16.256 my 14.872) KD_feat 0.955 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 10 | loss 5.5339 | Lclk_acc 0.963 m_x_acc 0.511 m_y_acc 0.548 wasd_acc 0.941 | KD_resp 28.391 (keys 0.173 clk 0.049 mx 14.747 my 13.422) KD_feat 0.890 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 15 | loss 5.8396 | Lclk_acc 0.962 m_x_acc 0.465 m_y_acc 0.541 wasd_acc 0.945 | KD_resp 29.554 (keys 0.180 clk 0.048 mx 15.367 my 13.959) KD_feat 0.912 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 20 | loss 6.1510 | Lclk_acc 0.952 m_x_acc 0.445 m_y_acc 0.489 wasd_acc 0.935 | KD_resp 30.744 (keys 0.191 clk 0.056 mx 16.131 my 14.366) KD_feat 0.929 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 25 | loss 5.4886 | Lclk_acc 0.959 m_x_acc 0.490 m_y_acc 0.552 wasd_acc 0.936 | KD_resp 27.113 (keys 0.180 clk 0.052 mx 14.195 my 12.685) KD_feat 0.896 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 30 | loss 5.9872 | Lclk_acc 0.956 m_x_acc 0.457 m_y_acc 0.511 wasd_acc 0.931 | KD_resp 30.198 (keys 0.187 clk 0.052 mx 15.550 my 14.409) KD_feat 0.938 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 35 | loss 5.6426 | Lclk_acc 0.968 m_x_acc 0.479 m_y_acc 0.523 wasd_acc 0.945 | KD_resp 27.852 (keys 0.175 clk 0.045 mx 14.436 my 13.196) KD_feat 0.899 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 40 | loss 6.1406 | Lclk_acc 0.957 m_x_acc 0.431 m_y_acc 0.489 wasd_acc 0.940 | KD_resp 30.732 (keys 0.176 clk 0.054 mx 15.916 my 14.586) KD_feat 0.932 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 45 | loss 5.6485 | Lclk_acc 0.961 m_x_acc 0.501 m_y_acc 0.560 wasd_acc 0.921 | KD_resp 28.619 (keys 0.188 clk 0.051 mx 14.892 my 13.488) KD_feat 0.899 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 50 | loss 5.3961 | Lclk_acc 0.953 m_x_acc 0.516 m_y_acc 0.566 wasd_acc 0.946 | KD_resp 26.890 (keys 0.172 clk 0.056 mx 13.877 my 12.786) KD_feat 0.872 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 step 55 | loss 5.3176 | Lclk_acc 0.966 m_x_acc 0.520 m_y_acc 0.559 wasd_acc 0.941 | KD_resp 26.509 (keys 0.172 clk 0.047 mx 13.854 my 12.436) KD_feat 0.847 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 10 done in 208.8s | train_loss 5.7585 | val_loss 2.7852 | Lclk_acc 0.961 m_x_acc 0.479 m_y_acc 0.535 wasd_acc 0.938 crit_mse 14.935
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 11 step 5 | loss 5.3377 | Lclk_acc 0.971 m_x_acc 0.528 m_y_acc 0.573 wasd_acc 0.946 | KD_resp 27.350 (keys 0.172 clk 0.036 mx 14.112 my 13.029) KD_feat 0.860 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 10 | loss 5.5389 | Lclk_acc 0.968 m_x_acc 0.485 m_y_acc 0.532 wasd_acc 0.947 | KD_resp 27.615 (keys 0.175 clk 0.041 mx 14.389 my 13.010) KD_feat 0.912 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 15 | loss 5.5856 | Lclk_acc 0.967 m_x_acc 0.452 m_y_acc 0.514 wasd_acc 0.932 | KD_resp 27.418 (keys 0.180 clk 0.042 mx 14.443 my 12.753) KD_feat 0.900 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 20 | loss 5.9818 | Lclk_acc 0.961 m_x_acc 0.458 m_y_acc 0.516 wasd_acc 0.939 | KD_resp 30.341 (keys 0.185 clk 0.046 mx 15.815 my 14.295) KD_feat 0.932 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 25 | loss 6.3367 | Lclk_acc 0.961 m_x_acc 0.420 m_y_acc 0.474 wasd_acc 0.932 | KD_resp 31.801 (keys 0.195 clk 0.049 mx 16.535 my 15.021) KD_feat 0.961 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 30 | loss 5.6107 | Lclk_acc 0.972 m_x_acc 0.493 m_y_acc 0.560 wasd_acc 0.934 | KD_resp 28.360 (keys 0.187 clk 0.040 mx 14.708 my 13.425) KD_feat 0.902 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 35 | loss 5.6673 | Lclk_acc 0.963 m_x_acc 0.501 m_y_acc 0.519 wasd_acc 0.942 | KD_resp 28.219 (keys 0.177 clk 0.047 mx 14.614 my 13.380) KD_feat 0.910 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 40 | loss 5.8576 | Lclk_acc 0.955 m_x_acc 0.461 m_y_acc 0.522 wasd_acc 0.941 | KD_resp 29.723 (keys 0.178 clk 0.054 mx 15.472 my 14.019) KD_feat 0.904 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 45 | loss 5.5114 | Lclk_acc 0.960 m_x_acc 0.476 m_y_acc 0.538 wasd_acc 0.940 | KD_resp 27.229 (keys 0.178 clk 0.047 mx 14.295 my 12.708) KD_feat 0.878 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 50 | loss 5.1101 | Lclk_acc 0.965 m_x_acc 0.532 m_y_acc 0.603 wasd_acc 0.953 | KD_resp 26.344 (keys 0.166 clk 0.043 mx 13.759 my 12.377) KD_feat 0.863 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 step 55 | loss 5.8510 | Lclk_acc 0.954 m_x_acc 0.448 m_y_acc 0.523 wasd_acc 0.944 | KD_resp 28.955 (keys 0.177 clk 0.054 mx 15.156 my 13.568) KD_feat 0.915 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 11 done in 212.9s | train_loss 5.6560 | val_loss 2.7114 | Lclk_acc 0.963 m_x_acc 0.482 m_y_acc 0.540 wasd_acc 0.944 crit_mse 16.984
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 12 step 5 | loss 5.7348 | Lclk_acc 0.951 m_x_acc 0.456 m_y_acc 0.534 wasd_acc 0.944 | KD_resp 28.339 (keys 0.176 clk 0.063 mx 14.768 my 13.333) KD_feat 0.894 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 10 | loss 6.0638 | Lclk_acc 0.952 m_x_acc 0.445 m_y_acc 0.504 wasd_acc 0.931 | KD_resp 30.196 (keys 0.187 clk 0.057 mx 15.762 my 14.189) KD_feat 0.922 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 15 | loss 5.4250 | Lclk_acc 0.966 m_x_acc 0.480 m_y_acc 0.545 wasd_acc 0.955 | KD_resp 27.212 (keys 0.166 clk 0.043 mx 14.247 my 12.756) KD_feat 0.903 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 20 | loss 5.3512 | Lclk_acc 0.968 m_x_acc 0.503 m_y_acc 0.553 wasd_acc 0.952 | KD_resp 26.491 (keys 0.169 clk 0.043 mx 13.707 my 12.572) KD_feat 0.869 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 25 | loss 5.6086 | Lclk_acc 0.960 m_x_acc 0.470 m_y_acc 0.519 wasd_acc 0.950 | KD_resp 27.633 (keys 0.171 clk 0.050 mx 14.386 my 13.026) KD_feat 0.877 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 30 | loss 5.5498 | Lclk_acc 0.966 m_x_acc 0.497 m_y_acc 0.550 wasd_acc 0.946 | KD_resp 28.226 (keys 0.175 clk 0.041 mx 14.656 my 13.353) KD_feat 0.906 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 35 | loss 5.6876 | Lclk_acc 0.965 m_x_acc 0.488 m_y_acc 0.545 wasd_acc 0.940 | KD_resp 28.638 (keys 0.179 clk 0.044 mx 14.895 my 13.520) KD_feat 0.893 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 40 | loss 5.6277 | Lclk_acc 0.962 m_x_acc 0.468 m_y_acc 0.532 wasd_acc 0.947 | KD_resp 28.102 (keys 0.169 clk 0.050 mx 14.614 my 13.269) KD_feat 0.884 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 45 | loss 5.7183 | Lclk_acc 0.958 m_x_acc 0.477 m_y_acc 0.522 wasd_acc 0.940 | KD_resp 27.950 (keys 0.185 clk 0.051 mx 14.514 my 13.201) KD_feat 0.895 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 50 | loss 5.3876 | Lclk_acc 0.954 m_x_acc 0.508 m_y_acc 0.563 wasd_acc 0.941 | KD_resp 26.167 (keys 0.180 clk 0.050 mx 13.517 my 12.420) KD_feat 0.861 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 step 55 | loss 5.6956 | Lclk_acc 0.962 m_x_acc 0.471 m_y_acc 0.534 wasd_acc 0.948 | KD_resp 28.570 (keys 0.175 clk 0.049 mx 15.166 my 13.180) KD_feat 0.885 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 12 done in 213.2s | train_loss 5.5579 | val_loss 2.6524 | Lclk_acc 0.964 m_x_acc 0.489 m_y_acc 0.546 wasd_acc 0.946 crit_mse 17.419
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 13 step 5 | loss 4.9245 | Lclk_acc 0.967 m_x_acc 0.558 m_y_acc 0.592 wasd_acc 0.957 | KD_resp 24.376 (keys 0.161 clk 0.040 mx 12.599 my 11.575) KD_feat 0.835 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 10 | loss 5.2338 | Lclk_acc 0.975 m_x_acc 0.524 m_y_acc 0.544 wasd_acc 0.952 | KD_resp 26.346 (keys 0.165 clk 0.034 mx 13.650 my 12.498) KD_feat 0.868 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 15 | loss 5.4659 | Lclk_acc 0.970 m_x_acc 0.492 m_y_acc 0.551 wasd_acc 0.946 | KD_resp 27.667 (keys 0.174 clk 0.036 mx 14.436 my 13.022) KD_feat 0.887 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 20 | loss 5.5913 | Lclk_acc 0.953 m_x_acc 0.455 m_y_acc 0.541 wasd_acc 0.950 | KD_resp 27.619 (keys 0.172 clk 0.057 mx 14.588 my 12.802) KD_feat 0.891 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 25 | loss 5.4546 | Lclk_acc 0.959 m_x_acc 0.483 m_y_acc 0.550 wasd_acc 0.947 | KD_resp 27.460 (keys 0.174 clk 0.072 mx 14.375 my 12.838) KD_feat 0.894 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 30 | loss 5.5864 | Lclk_acc 0.962 m_x_acc 0.466 m_y_acc 0.529 wasd_acc 0.946 | KD_resp 27.564 (keys 0.174 clk 0.047 mx 14.257 my 13.086) KD_feat 0.892 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 35 | loss 5.3712 | Lclk_acc 0.973 m_x_acc 0.496 m_y_acc 0.549 wasd_acc 0.953 | KD_resp 27.456 (keys 0.163 clk 0.038 mx 14.395 my 12.859) KD_feat 0.867 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 40 | loss 5.7709 | Lclk_acc 0.958 m_x_acc 0.462 m_y_acc 0.525 wasd_acc 0.938 | KD_resp 28.649 (keys 0.185 clk 0.047 mx 14.870 my 13.546) KD_feat 0.909 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 45 | loss 5.3158 | Lclk_acc 0.955 m_x_acc 0.507 m_y_acc 0.561 wasd_acc 0.946 | KD_resp 26.442 (keys 0.174 clk 0.053 mx 13.845 my 12.370) KD_feat 0.898 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 50 | loss 5.6789 | Lclk_acc 0.954 m_x_acc 0.474 m_y_acc 0.520 wasd_acc 0.939 | KD_resp 28.025 (keys 0.178 clk 0.058 mx 14.528 my 13.261) KD_feat 0.893 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 step 55 | loss 5.6144 | Lclk_acc 0.970 m_x_acc 0.467 m_y_acc 0.541 wasd_acc 0.947 | KD_resp 27.513 (keys 0.178 clk 0.041 mx 14.294 my 13.000) KD_feat 0.904 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 13 done in 214.5s | train_loss 5.4603 | val_loss 2.6408 | Lclk_acc 0.964 m_x_acc 0.491 m_y_acc 0.546 wasd_acc 0.948 crit_mse 21.262
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 14 step 5 | loss 5.4813 | Lclk_acc 0.956 m_x_acc 0.495 m_y_acc 0.556 wasd_acc 0.950 | KD_resp 27.744 (keys 0.172 clk 0.051 mx 14.520 my 13.000) KD_feat 0.875 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 10 | loss 5.6430 | Lclk_acc 0.954 m_x_acc 0.461 m_y_acc 0.521 wasd_acc 0.933 | KD_resp 27.938 (keys 0.181 clk 0.050 mx 14.479 my 13.227) KD_feat 0.899 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 15 | loss 5.5464 | Lclk_acc 0.955 m_x_acc 0.481 m_y_acc 0.534 wasd_acc 0.942 | KD_resp 27.688 (keys 0.180 clk 0.054 mx 14.549 my 12.905) KD_feat 0.902 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 20 | loss 5.4412 | Lclk_acc 0.968 m_x_acc 0.473 m_y_acc 0.531 wasd_acc 0.951 | KD_resp 27.065 (keys 0.170 clk 0.042 mx 14.074 my 12.778) KD_feat 0.896 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 25 | loss 5.0629 | Lclk_acc 0.953 m_x_acc 0.520 m_y_acc 0.583 wasd_acc 0.955 | KD_resp 25.085 (keys 0.165 clk 0.052 mx 13.049 my 11.818) KD_feat 0.853 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 30 | loss 5.4426 | Lclk_acc 0.977 m_x_acc 0.511 m_y_acc 0.539 wasd_acc 0.945 | KD_resp 27.833 (keys 0.172 clk 0.032 mx 14.330 my 13.299) KD_feat 0.892 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 35 | loss 5.4517 | Lclk_acc 0.969 m_x_acc 0.489 m_y_acc 0.540 wasd_acc 0.949 | KD_resp 27.548 (keys 0.169 clk 0.037 mx 14.445 my 12.896) KD_feat 0.881 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 40 | loss 5.1688 | Lclk_acc 0.977 m_x_acc 0.525 m_y_acc 0.560 wasd_acc 0.952 | KD_resp 26.248 (keys 0.169 clk 0.033 mx 13.689 my 12.357) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 45 | loss 5.4909 | Lclk_acc 0.956 m_x_acc 0.492 m_y_acc 0.510 wasd_acc 0.956 | KD_resp 27.097 (keys 0.166 clk 0.055 mx 13.937 my 12.939) KD_feat 0.891 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 50 | loss 5.6117 | Lclk_acc 0.967 m_x_acc 0.463 m_y_acc 0.527 wasd_acc 0.945 | KD_resp 27.556 (keys 0.177 clk 0.044 mx 14.408 my 12.926) KD_feat 0.902 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 step 55 | loss 5.2359 | Lclk_acc 0.960 m_x_acc 0.499 m_y_acc 0.582 wasd_acc 0.957 | KD_resp 26.242 (keys 0.164 clk 0.047 mx 13.813 my 12.219) KD_feat 0.864 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 14 done in 211.6s | train_loss 5.3819 | val_loss 2.6027 | Lclk_acc 0.966 m_x_acc 0.492 m_y_acc 0.550 wasd_acc 0.949 crit_mse 23.044
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 15 step 5 | loss 5.7249 | Lclk_acc 0.957 m_x_acc 0.446 m_y_acc 0.509 wasd_acc 0.949 | KD_resp 28.091 (keys 0.176 clk 0.052 mx 14.637 my 13.226) KD_feat 0.890 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 10 | loss 5.2558 | Lclk_acc 0.959 m_x_acc 0.504 m_y_acc 0.551 wasd_acc 0.946 | KD_resp 25.992 (keys 0.174 clk 0.051 mx 13.503 my 12.265) KD_feat 0.883 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 15 | loss 5.1060 | Lclk_acc 0.975 m_x_acc 0.511 m_y_acc 0.573 wasd_acc 0.946 | KD_resp 25.931 (keys 0.173 clk 0.032 mx 13.607 my 12.119) KD_feat 0.862 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 20 | loss 5.5053 | Lclk_acc 0.959 m_x_acc 0.490 m_y_acc 0.545 wasd_acc 0.949 | KD_resp 27.755 (keys 0.174 clk 0.049 mx 14.455 my 13.077) KD_feat 0.898 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 25 | loss 5.5744 | Lclk_acc 0.971 m_x_acc 0.454 m_y_acc 0.534 wasd_acc 0.951 | KD_resp 27.878 (keys 0.168 clk 0.037 mx 14.498 my 13.175) KD_feat 0.912 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 30 | loss 5.2074 | Lclk_acc 0.966 m_x_acc 0.503 m_y_acc 0.546 wasd_acc 0.951 | KD_resp 25.947 (keys 0.163 clk 0.037 mx 13.532 my 12.216) KD_feat 0.863 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 35 | loss 5.2890 | Lclk_acc 0.956 m_x_acc 0.502 m_y_acc 0.561 wasd_acc 0.952 | KD_resp 26.439 (keys 0.167 clk 0.049 mx 13.841 my 12.383) KD_feat 0.886 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 40 | loss 5.2717 | Lclk_acc 0.965 m_x_acc 0.499 m_y_acc 0.555 wasd_acc 0.950 | KD_resp 26.303 (keys 0.170 clk 0.046 mx 13.705 my 12.382) KD_feat 0.886 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 45 | loss 5.5351 | Lclk_acc 0.964 m_x_acc 0.459 m_y_acc 0.529 wasd_acc 0.949 | KD_resp 27.367 (keys 0.171 clk 0.046 mx 14.316 my 12.833) KD_feat 0.876 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 50 | loss 5.4688 | Lclk_acc 0.967 m_x_acc 0.479 m_y_acc 0.538 wasd_acc 0.949 | KD_resp 27.165 (keys 0.169 clk 0.041 mx 14.209 my 12.746) KD_feat 0.880 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 step 55 | loss 4.9128 | Lclk_acc 0.976 m_x_acc 0.538 m_y_acc 0.586 wasd_acc 0.952 | KD_resp 24.150 (keys 0.167 clk 0.033 mx 12.530 my 11.419) KD_feat 0.844 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 15 done in 208.2s | train_loss 5.2932 | val_loss 2.5941 | Lclk_acc 0.967 m_x_acc 0.493 m_y_acc 0.554 wasd_acc 0.949 crit_mse 25.851
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 16 step 5 | loss 5.4624 | Lclk_acc 0.962 m_x_acc 0.483 m_y_acc 0.542 wasd_acc 0.950 | KD_resp 27.132 (keys 0.171 clk 0.050 mx 14.203 my 12.708) KD_feat 0.900 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 10 | loss 5.1715 | Lclk_acc 0.976 m_x_acc 0.499 m_y_acc 0.559 wasd_acc 0.954 | KD_resp 26.102 (keys 0.166 clk 0.034 mx 13.563 my 12.338) KD_feat 0.892 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 15 | loss 5.5112 | Lclk_acc 0.943 m_x_acc 0.455 m_y_acc 0.516 wasd_acc 0.947 | KD_resp 27.116 (keys 0.170 clk 0.064 mx 14.111 my 12.771) KD_feat 0.890 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 20 | loss 5.1044 | Lclk_acc 0.960 m_x_acc 0.524 m_y_acc 0.581 wasd_acc 0.954 | KD_resp 25.244 (keys 0.167 clk 0.052 mx 13.217 my 11.809) KD_feat 0.859 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 25 | loss 5.3065 | Lclk_acc 0.959 m_x_acc 0.497 m_y_acc 0.547 wasd_acc 0.948 | KD_resp 26.680 (keys 0.171 clk 0.047 mx 13.901 my 12.560) KD_feat 0.866 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 30 | loss 5.1012 | Lclk_acc 0.967 m_x_acc 0.506 m_y_acc 0.561 wasd_acc 0.956 | KD_resp 25.437 (keys 0.161 clk 0.042 mx 13.387 my 11.847) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 35 | loss 4.9854 | Lclk_acc 0.978 m_x_acc 0.536 m_y_acc 0.588 wasd_acc 0.947 | KD_resp 24.995 (keys 0.167 clk 0.031 mx 13.038 my 11.758) KD_feat 0.854 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 40 | loss 5.3506 | Lclk_acc 0.978 m_x_acc 0.507 m_y_acc 0.524 wasd_acc 0.946 | KD_resp 26.961 (keys 0.172 clk 0.027 mx 13.942 my 12.821) KD_feat 0.891 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 45 | loss 5.1875 | Lclk_acc 0.962 m_x_acc 0.509 m_y_acc 0.554 wasd_acc 0.948 | KD_resp 25.878 (keys 0.173 clk 0.047 mx 13.460 my 12.198) KD_feat 0.863 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 50 | loss 5.1217 | Lclk_acc 0.972 m_x_acc 0.509 m_y_acc 0.575 wasd_acc 0.956 | KD_resp 25.898 (keys 0.166 clk 0.037 mx 13.498 my 12.197) KD_feat 0.859 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 step 55 | loss 5.2000 | Lclk_acc 0.970 m_x_acc 0.512 m_y_acc 0.552 wasd_acc 0.954 | KD_resp 26.232 (keys 0.163 clk 0.036 mx 13.648 my 12.384) KD_feat 0.863 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 16 done in 211.2s | train_loss 5.2035 | val_loss 2.5237 | Lclk_acc 0.967 m_x_acc 0.509 m_y_acc 0.565 wasd_acc 0.950 crit_mse 28.416
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 17 step 5 | loss 5.2038 | Lclk_acc 0.967 m_x_acc 0.490 m_y_acc 0.543 wasd_acc 0.950 | KD_resp 25.581 (keys 0.168 clk 0.046 mx 13.300 my 12.066) KD_feat 0.857 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 10 | loss 4.8201 | Lclk_acc 0.956 m_x_acc 0.546 m_y_acc 0.596 wasd_acc 0.958 | KD_resp 24.357 (keys 0.163 clk 0.052 mx 12.721 my 11.420) KD_feat 0.843 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 15 | loss 5.0067 | Lclk_acc 0.973 m_x_acc 0.528 m_y_acc 0.569 wasd_acc 0.959 | KD_resp 24.881 (keys 0.163 clk 0.036 mx 13.123 my 11.558) KD_feat 0.878 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 20 | loss 4.9175 | Lclk_acc 0.962 m_x_acc 0.544 m_y_acc 0.589 wasd_acc 0.956 | KD_resp 25.148 (keys 0.162 clk 0.044 mx 13.017 my 11.926) KD_feat 0.855 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 25 | loss 5.6297 | Lclk_acc 0.947 m_x_acc 0.450 m_y_acc 0.510 wasd_acc 0.940 | KD_resp 27.327 (keys 0.180 clk 0.063 mx 14.146 my 12.938) KD_feat 0.892 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 30 | loss 5.2001 | Lclk_acc 0.966 m_x_acc 0.505 m_y_acc 0.564 wasd_acc 0.950 | KD_resp 25.247 (keys 0.174 clk 0.043 mx 13.143 my 11.887) KD_feat 0.865 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 35 | loss 5.5930 | Lclk_acc 0.955 m_x_acc 0.473 m_y_acc 0.524 wasd_acc 0.950 | KD_resp 27.435 (keys 0.174 clk 0.054 mx 14.260 my 12.947) KD_feat 0.889 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 40 | loss 4.9775 | Lclk_acc 0.959 m_x_acc 0.528 m_y_acc 0.581 wasd_acc 0.953 | KD_resp 24.661 (keys 0.162 clk 0.053 mx 12.843 my 11.603) KD_feat 0.832 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 45 | loss 5.3867 | Lclk_acc 0.959 m_x_acc 0.476 m_y_acc 0.524 wasd_acc 0.952 | KD_resp 26.673 (keys 0.171 clk 0.051 mx 13.804 my 12.647) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 50 | loss 5.2801 | Lclk_acc 0.964 m_x_acc 0.485 m_y_acc 0.566 wasd_acc 0.944 | KD_resp 26.366 (keys 0.175 clk 0.045 mx 13.802 my 12.343) KD_feat 0.880 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 step 55 | loss 5.3710 | Lclk_acc 0.968 m_x_acc 0.491 m_y_acc 0.539 wasd_acc 0.952 | KD_resp 26.649 (keys 0.170 clk 0.040 mx 13.768 my 12.670) KD_feat 0.883 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 17 done in 208.5s | train_loss 5.1325 | val_loss 2.4783 | Lclk_acc 0.967 m_x_acc 0.512 m_y_acc 0.568 wasd_acc 0.952 crit_mse 29.220
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 18 step 5 | loss 5.3307 | Lclk_acc 0.960 m_x_acc 0.475 m_y_acc 0.531 wasd_acc 0.943 | KD_resp 26.310 (keys 0.175 clk 0.047 mx 13.638 my 12.449) KD_feat 0.886 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 10 | loss 5.1418 | Lclk_acc 0.964 m_x_acc 0.507 m_y_acc 0.549 wasd_acc 0.949 | KD_resp 25.227 (keys 0.171 clk 0.041 mx 13.036 my 11.978) KD_feat 0.872 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 15 | loss 5.2013 | Lclk_acc 0.964 m_x_acc 0.486 m_y_acc 0.561 wasd_acc 0.948 | KD_resp 26.008 (keys 0.171 clk 0.044 mx 13.595 my 12.198) KD_feat 0.869 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 20 | loss 5.2673 | Lclk_acc 0.960 m_x_acc 0.497 m_y_acc 0.556 wasd_acc 0.948 | KD_resp 26.230 (keys 0.175 clk 0.051 mx 13.633 my 12.371) KD_feat 0.883 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 25 | loss 5.0698 | Lclk_acc 0.970 m_x_acc 0.510 m_y_acc 0.587 wasd_acc 0.951 | KD_resp 25.121 (keys 0.171 clk 0.040 mx 13.230 my 11.681) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 30 | loss 5.1837 | Lclk_acc 0.970 m_x_acc 0.500 m_y_acc 0.549 wasd_acc 0.951 | KD_resp 25.758 (keys 0.169 clk 0.042 mx 13.390 my 12.157) KD_feat 0.867 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 35 | loss 5.2445 | Lclk_acc 0.960 m_x_acc 0.493 m_y_acc 0.547 wasd_acc 0.955 | KD_resp 26.190 (keys 0.168 clk 0.052 mx 13.670 my 12.299) KD_feat 0.877 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 40 | loss 4.7901 | Lclk_acc 0.977 m_x_acc 0.544 m_y_acc 0.585 wasd_acc 0.956 | KD_resp 23.834 (keys 0.163 clk 0.034 mx 12.270 my 11.367) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 45 | loss 5.0076 | Lclk_acc 0.964 m_x_acc 0.516 m_y_acc 0.574 wasd_acc 0.957 | KD_resp 24.884 (keys 0.163 clk 0.042 mx 12.954 my 11.725) KD_feat 0.849 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 50 | loss 4.9129 | Lclk_acc 0.966 m_x_acc 0.534 m_y_acc 0.579 wasd_acc 0.959 | KD_resp 24.752 (keys 0.158 clk 0.039 mx 12.741 my 11.813) KD_feat 0.849 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 step 55 | loss 5.1247 | Lclk_acc 0.972 m_x_acc 0.496 m_y_acc 0.549 wasd_acc 0.949 | KD_resp 25.258 (keys 0.165 clk 0.037 mx 13.174 my 11.883) KD_feat 0.846 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 18 done in 208.9s | train_loss 5.0463 | val_loss 2.4731 | Lclk_acc 0.968 m_x_acc 0.519 m_y_acc 0.570 wasd_acc 0.953 crit_mse 32.334
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 19 step 5 | loss 5.1173 | Lclk_acc 0.963 m_x_acc 0.515 m_y_acc 0.555 wasd_acc 0.950 | KD_resp 25.190 (keys 0.168 clk 0.047 mx 13.021 my 11.954) KD_feat 0.870 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 10 | loss 5.1681 | Lclk_acc 0.959 m_x_acc 0.489 m_y_acc 0.555 wasd_acc 0.958 | KD_resp 25.532 (keys 0.164 clk 0.050 mx 13.462 my 11.856) KD_feat 0.861 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 15 | loss 5.2546 | Lclk_acc 0.969 m_x_acc 0.482 m_y_acc 0.554 wasd_acc 0.953 | KD_resp 25.987 (keys 0.168 clk 0.041 mx 13.608 my 12.169) KD_feat 0.883 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 20 | loss 4.7255 | Lclk_acc 0.957 m_x_acc 0.545 m_y_acc 0.585 wasd_acc 0.953 | KD_resp 23.265 (keys 0.163 clk 0.052 mx 12.222 my 10.829) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 25 | loss 5.0993 | Lclk_acc 0.970 m_x_acc 0.477 m_y_acc 0.554 wasd_acc 0.946 | KD_resp 25.521 (keys 0.167 clk 0.039 mx 13.300 my 12.014) KD_feat 0.878 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 30 | loss 4.9533 | Lclk_acc 0.970 m_x_acc 0.519 m_y_acc 0.572 wasd_acc 0.954 | KD_resp 25.008 (keys 0.163 clk 0.037 mx 13.008 my 11.800) KD_feat 0.869 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 35 | loss 4.6692 | Lclk_acc 0.961 m_x_acc 0.527 m_y_acc 0.594 wasd_acc 0.961 | KD_resp 23.231 (keys 0.155 clk 0.044 mx 12.009 my 11.023) KD_feat 0.833 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 40 | loss 4.9346 | Lclk_acc 0.965 m_x_acc 0.519 m_y_acc 0.568 wasd_acc 0.955 | KD_resp 23.997 (keys 0.165 clk 0.040 mx 12.486 my 11.306) KD_feat 0.856 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 45 | loss 4.6020 | Lclk_acc 0.965 m_x_acc 0.563 m_y_acc 0.600 wasd_acc 0.959 | KD_resp 22.413 (keys 0.159 clk 0.044 mx 11.597 my 10.613) KD_feat 0.829 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 50 | loss 4.9361 | Lclk_acc 0.975 m_x_acc 0.519 m_y_acc 0.564 wasd_acc 0.956 | KD_resp 24.591 (keys 0.166 clk 0.034 mx 12.782 my 11.609) KD_feat 0.859 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 step 55 | loss 4.9602 | Lclk_acc 0.964 m_x_acc 0.524 m_y_acc 0.570 wasd_acc 0.956 | KD_resp 24.478 (keys 0.161 clk 0.041 mx 12.764 my 11.512) KD_feat 0.867 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 19 done in 209.0s | train_loss 4.9741 | val_loss 2.4494 | Lclk_acc 0.968 m_x_acc 0.519 m_y_acc 0.571 wasd_acc 0.952 crit_mse 33.956
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 20 step 5 | loss 5.2668 | Lclk_acc 0.954 m_x_acc 0.489 m_y_acc 0.543 wasd_acc 0.950 | KD_resp 25.926 (keys 0.175 clk 0.058 mx 13.573 my 12.119) KD_feat 0.875 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 10 | loss 4.6208 | Lclk_acc 0.958 m_x_acc 0.537 m_y_acc 0.600 wasd_acc 0.954 | KD_resp 22.501 (keys 0.162 clk 0.050 mx 11.727 my 10.562) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 15 | loss 5.3611 | Lclk_acc 0.957 m_x_acc 0.479 m_y_acc 0.535 wasd_acc 0.948 | KD_resp 26.565 (keys 0.174 clk 0.052 mx 13.847 my 12.492) KD_feat 0.892 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 20 | loss 4.8847 | Lclk_acc 0.969 m_x_acc 0.503 m_y_acc 0.587 wasd_acc 0.958 | KD_resp 24.554 (keys 0.165 clk 0.039 mx 12.847 my 11.503) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 25 | loss 4.7632 | Lclk_acc 0.965 m_x_acc 0.553 m_y_acc 0.578 wasd_acc 0.954 | KD_resp 23.807 (keys 0.164 clk 0.045 mx 12.379 my 11.219) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 30 | loss 4.9284 | Lclk_acc 0.969 m_x_acc 0.526 m_y_acc 0.565 wasd_acc 0.950 | KD_resp 24.404 (keys 0.165 clk 0.036 mx 12.680 my 11.523) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 35 | loss 5.1518 | Lclk_acc 0.963 m_x_acc 0.504 m_y_acc 0.540 wasd_acc 0.951 | KD_resp 24.855 (keys 0.170 clk 0.048 mx 12.835 my 11.802) KD_feat 0.876 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 40 | loss 4.8441 | Lclk_acc 0.971 m_x_acc 0.515 m_y_acc 0.574 wasd_acc 0.958 | KD_resp 23.981 (keys 0.164 clk 0.039 mx 12.436 my 11.342) KD_feat 0.843 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 45 | loss 5.0013 | Lclk_acc 0.975 m_x_acc 0.522 m_y_acc 0.563 wasd_acc 0.955 | KD_resp 24.958 (keys 0.169 clk 0.032 mx 12.830 my 11.927) KD_feat 0.867 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 50 | loss 4.9971 | Lclk_acc 0.967 m_x_acc 0.516 m_y_acc 0.571 wasd_acc 0.953 | KD_resp 24.412 (keys 0.169 clk 0.044 mx 12.642 my 11.557) KD_feat 0.882 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 step 55 | loss 4.7984 | Lclk_acc 0.971 m_x_acc 0.526 m_y_acc 0.591 wasd_acc 0.957 | KD_resp 23.445 (keys 0.164 clk 0.034 mx 12.244 my 11.004) KD_feat 0.848 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 20 done in 207.9s | train_loss 4.9040 | val_loss 2.3829 | Lclk_acc 0.969 m_x_acc 0.519 m_y_acc 0.579 wasd_acc 0.953 crit_mse 37.365
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 21 step 5 | loss 5.1370 | Lclk_acc 0.967 m_x_acc 0.484 m_y_acc 0.545 wasd_acc 0.949 | KD_resp 25.027 (keys 0.171 clk 0.044 mx 13.096 my 11.716) KD_feat 0.870 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 10 | loss 4.5724 | Lclk_acc 0.975 m_x_acc 0.549 m_y_acc 0.595 wasd_acc 0.958 | KD_resp 22.778 (keys 0.156 clk 0.035 mx 11.844 my 10.743) KD_feat 0.823 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 15 | loss 4.9080 | Lclk_acc 0.967 m_x_acc 0.512 m_y_acc 0.566 wasd_acc 0.948 | KD_resp 24.306 (keys 0.172 clk 0.043 mx 12.602 my 11.490) KD_feat 0.853 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 20 | loss 4.5422 | Lclk_acc 0.963 m_x_acc 0.561 m_y_acc 0.614 wasd_acc 0.962 | KD_resp 22.741 (keys 0.156 clk 0.047 mx 11.972 my 10.566) KD_feat 0.829 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 25 | loss 4.4915 | Lclk_acc 0.982 m_x_acc 0.556 m_y_acc 0.594 wasd_acc 0.963 | KD_resp 22.309 (keys 0.150 clk 0.025 mx 11.573 my 10.561) KD_feat 0.817 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 30 | loss 4.6484 | Lclk_acc 0.969 m_x_acc 0.527 m_y_acc 0.597 wasd_acc 0.960 | KD_resp 22.831 (keys 0.155 clk 0.040 mx 11.928 my 10.707) KD_feat 0.809 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 35 | loss 4.6117 | Lclk_acc 0.967 m_x_acc 0.536 m_y_acc 0.581 wasd_acc 0.958 | KD_resp 22.361 (keys 0.157 clk 0.042 mx 11.594 my 10.569) KD_feat 0.836 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 40 | loss 4.9097 | Lclk_acc 0.967 m_x_acc 0.525 m_y_acc 0.569 wasd_acc 0.957 | KD_resp 24.386 (keys 0.159 clk 0.042 mx 12.746 my 11.439) KD_feat 0.849 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 45 | loss 4.9870 | Lclk_acc 0.964 m_x_acc 0.525 m_y_acc 0.563 wasd_acc 0.955 | KD_resp 24.683 (keys 0.167 clk 0.045 mx 12.838 my 11.633) KD_feat 0.862 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 50 | loss 5.0125 | Lclk_acc 0.954 m_x_acc 0.513 m_y_acc 0.567 wasd_acc 0.953 | KD_resp 24.261 (keys 0.169 clk 0.055 mx 12.692 my 11.345) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 step 55 | loss 4.5805 | Lclk_acc 0.973 m_x_acc 0.550 m_y_acc 0.603 wasd_acc 0.955 | KD_resp 22.939 (keys 0.158 clk 0.034 mx 12.030 my 10.717) KD_feat 0.831 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 21 done in 211.3s | train_loss 4.8263 | val_loss 2.3636 | Lclk_acc 0.970 m_x_acc 0.527 m_y_acc 0.581 wasd_acc 0.953 crit_mse 37.616
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 22 step 5 | loss 4.4229 | Lclk_acc 0.970 m_x_acc 0.547 m_y_acc 0.619 wasd_acc 0.959 | KD_resp 22.015 (keys 0.152 clk 0.037 mx 11.581 my 10.246) KD_feat 0.811 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 10 | loss 4.6852 | Lclk_acc 0.980 m_x_acc 0.533 m_y_acc 0.586 wasd_acc 0.956 | KD_resp 23.578 (keys 0.156 clk 0.029 mx 12.413 my 10.979) KD_feat 0.835 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 15 | loss 4.5424 | Lclk_acc 0.976 m_x_acc 0.552 m_y_acc 0.597 wasd_acc 0.950 | KD_resp 22.556 (keys 0.163 clk 0.031 mx 11.694 my 10.667) KD_feat 0.842 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 20 | loss 4.6637 | Lclk_acc 0.977 m_x_acc 0.540 m_y_acc 0.587 wasd_acc 0.953 | KD_resp 22.948 (keys 0.162 clk 0.032 mx 11.878 my 10.875) KD_feat 0.837 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 25 | loss 4.6658 | Lclk_acc 0.973 m_x_acc 0.546 m_y_acc 0.584 wasd_acc 0.953 | KD_resp 23.232 (keys 0.164 clk 0.031 mx 12.010 my 11.028) KD_feat 0.839 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 30 | loss 5.0252 | Lclk_acc 0.954 m_x_acc 0.502 m_y_acc 0.573 wasd_acc 0.951 | KD_resp 24.539 (keys 0.172 clk 0.058 mx 12.759 my 11.551) KD_feat 0.879 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 35 | loss 4.9470 | Lclk_acc 0.960 m_x_acc 0.500 m_y_acc 0.573 wasd_acc 0.948 | KD_resp 24.187 (keys 0.171 clk 0.049 mx 12.731 my 11.237) KD_feat 0.865 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 40 | loss 5.0141 | Lclk_acc 0.966 m_x_acc 0.484 m_y_acc 0.560 wasd_acc 0.951 | KD_resp 24.454 (keys 0.165 clk 0.042 mx 12.909 my 11.337) KD_feat 0.870 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 45 | loss 4.9784 | Lclk_acc 0.953 m_x_acc 0.507 m_y_acc 0.570 wasd_acc 0.954 | KD_resp 24.396 (keys 0.164 clk 0.055 mx 12.817 my 11.360) KD_feat 0.841 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 50 | loss 4.7927 | Lclk_acc 0.976 m_x_acc 0.515 m_y_acc 0.579 wasd_acc 0.950 | KD_resp 23.433 (keys 0.164 clk 0.036 mx 12.378 my 10.854) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 step 55 | loss 4.7103 | Lclk_acc 0.962 m_x_acc 0.533 m_y_acc 0.586 wasd_acc 0.959 | KD_resp 23.076 (keys 0.159 clk 0.046 mx 12.029 my 10.842) KD_feat 0.826 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 22 done in 207.3s | train_loss 4.7594 | val_loss 2.3426 | Lclk_acc 0.968 m_x_acc 0.526 m_y_acc 0.586 wasd_acc 0.954 crit_mse 39.988
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 23 step 5 | loss 4.4702 | Lclk_acc 0.980 m_x_acc 0.551 m_y_acc 0.607 wasd_acc 0.948 | KD_resp 21.959 (keys 0.167 clk 0.028 mx 11.540 my 10.224) KD_feat 0.825 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 10 | loss 4.8633 | Lclk_acc 0.960 m_x_acc 0.505 m_y_acc 0.568 wasd_acc 0.952 | KD_resp 24.106 (keys 0.166 clk 0.047 mx 12.513 my 11.379) KD_feat 0.854 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 15 | loss 5.0163 | Lclk_acc 0.957 m_x_acc 0.496 m_y_acc 0.575 wasd_acc 0.953 | KD_resp 24.885 (keys 0.169 clk 0.053 mx 13.156 my 11.507) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 20 | loss 4.7164 | Lclk_acc 0.970 m_x_acc 0.535 m_y_acc 0.596 wasd_acc 0.955 | KD_resp 23.718 (keys 0.165 clk 0.037 mx 12.287 my 11.230) KD_feat 0.848 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 25 | loss 4.6885 | Lclk_acc 0.971 m_x_acc 0.519 m_y_acc 0.591 wasd_acc 0.957 | KD_resp 23.337 (keys 0.162 clk 0.037 mx 12.140 my 10.998) KD_feat 0.847 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 30 | loss 4.5437 | Lclk_acc 0.976 m_x_acc 0.542 m_y_acc 0.606 wasd_acc 0.953 | KD_resp 22.205 (keys 0.165 clk 0.033 mx 11.619 my 10.388) KD_feat 0.827 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 35 | loss 4.5326 | Lclk_acc 0.960 m_x_acc 0.549 m_y_acc 0.602 wasd_acc 0.957 | KD_resp 21.921 (keys 0.160 clk 0.044 mx 11.509 my 10.208) KD_feat 0.818 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 40 | loss 4.8621 | Lclk_acc 0.955 m_x_acc 0.533 m_y_acc 0.589 wasd_acc 0.957 | KD_resp 24.262 (keys 0.166 clk 0.054 mx 12.653 my 11.390) KD_feat 0.860 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 45 | loss 4.6975 | Lclk_acc 0.972 m_x_acc 0.530 m_y_acc 0.583 wasd_acc 0.955 | KD_resp 23.344 (keys 0.162 clk 0.038 mx 12.146 my 10.998) KD_feat 0.834 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 50 | loss 4.3946 | Lclk_acc 0.972 m_x_acc 0.560 m_y_acc 0.616 wasd_acc 0.962 | KD_resp 21.717 (keys 0.157 clk 0.037 mx 11.384 my 10.138) KD_feat 0.805 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 step 55 | loss 5.1270 | Lclk_acc 0.971 m_x_acc 0.482 m_y_acc 0.546 wasd_acc 0.951 | KD_resp 25.224 (keys 0.170 clk 0.043 mx 13.378 my 11.633) KD_feat 0.881 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 23 done in 210.0s | train_loss 4.7012 | val_loss 2.3057 | Lclk_acc 0.969 m_x_acc 0.532 m_y_acc 0.588 wasd_acc 0.955 crit_mse 41.800
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 24 step 5 | loss 4.3972 | Lclk_acc 0.976 m_x_acc 0.556 m_y_acc 0.629 wasd_acc 0.958 | KD_resp 21.736 (keys 0.159 clk 0.033 mx 11.310 my 10.233) KD_feat 0.826 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 10 | loss 4.8190 | Lclk_acc 0.967 m_x_acc 0.526 m_y_acc 0.565 wasd_acc 0.951 | KD_resp 23.694 (keys 0.169 clk 0.040 mx 12.349 my 11.136) KD_feat 0.855 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 15 | loss 4.6144 | Lclk_acc 0.969 m_x_acc 0.543 m_y_acc 0.591 wasd_acc 0.954 | KD_resp 23.039 (keys 0.167 clk 0.037 mx 11.950 my 10.885) KD_feat 0.860 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 20 | loss 4.4403 | Lclk_acc 0.967 m_x_acc 0.562 m_y_acc 0.607 wasd_acc 0.962 | KD_resp 21.640 (keys 0.156 clk 0.039 mx 11.400 my 10.046) KD_feat 0.828 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 25 | loss 4.4799 | Lclk_acc 0.967 m_x_acc 0.555 m_y_acc 0.599 wasd_acc 0.951 | KD_resp 21.741 (keys 0.167 clk 0.038 mx 11.393 my 10.143) KD_feat 0.821 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 30 | loss 4.2988 | Lclk_acc 0.979 m_x_acc 0.578 m_y_acc 0.630 wasd_acc 0.954 | KD_resp 21.241 (keys 0.161 clk 0.027 mx 11.077 my 9.977) KD_feat 0.817 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 35 | loss 4.8961 | Lclk_acc 0.965 m_x_acc 0.515 m_y_acc 0.561 wasd_acc 0.950 | KD_resp 24.254 (keys 0.171 clk 0.045 mx 12.708 my 11.331) KD_feat 0.868 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 40 | loss 4.8565 | Lclk_acc 0.966 m_x_acc 0.502 m_y_acc 0.569 wasd_acc 0.953 | KD_resp 23.757 (keys 0.170 clk 0.042 mx 12.257 my 11.288) KD_feat 0.875 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 45 | loss 4.8362 | Lclk_acc 0.964 m_x_acc 0.512 m_y_acc 0.569 wasd_acc 0.951 | KD_resp 23.792 (keys 0.170 clk 0.042 mx 12.335 my 11.245) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 50 | loss 4.8134 | Lclk_acc 0.972 m_x_acc 0.513 m_y_acc 0.563 wasd_acc 0.957 | KD_resp 24.146 (keys 0.161 clk 0.035 mx 12.642 my 11.308) KD_feat 0.872 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 step 55 | loss 4.9424 | Lclk_acc 0.968 m_x_acc 0.502 m_y_acc 0.555 wasd_acc 0.944 | KD_resp 24.034 (keys 0.173 clk 0.043 mx 12.604 my 11.214) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 24 done in 208.8s | train_loss 4.6461 | val_loss 2.2917 | Lclk_acc 0.971 m_x_acc 0.534 m_y_acc 0.592 wasd_acc 0.955 crit_mse 42.803
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 25 step 5 | loss 4.6574 | Lclk_acc 0.969 m_x_acc 0.517 m_y_acc 0.600 wasd_acc 0.957 | KD_resp 23.172 (keys 0.162 clk 0.041 mx 12.212 my 10.757) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 10 | loss 4.3523 | Lclk_acc 0.968 m_x_acc 0.573 m_y_acc 0.619 wasd_acc 0.963 | KD_resp 21.402 (keys 0.155 clk 0.041 mx 11.220 my 9.986) KD_feat 0.827 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 15 | loss 4.7572 | Lclk_acc 0.963 m_x_acc 0.518 m_y_acc 0.555 wasd_acc 0.955 | KD_resp 23.211 (keys 0.167 clk 0.043 mx 12.087 my 10.914) KD_feat 0.859 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 20 | loss 4.5718 | Lclk_acc 0.973 m_x_acc 0.545 m_y_acc 0.584 wasd_acc 0.959 | KD_resp 22.541 (keys 0.158 clk 0.034 mx 11.789 my 10.561) KD_feat 0.839 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 25 | loss 4.2575 | Lclk_acc 0.971 m_x_acc 0.579 m_y_acc 0.618 wasd_acc 0.963 | KD_resp 20.852 (keys 0.158 clk 0.039 mx 10.907 my 9.748) KD_feat 0.819 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 30 | loss 4.6141 | Lclk_acc 0.977 m_x_acc 0.540 m_y_acc 0.599 wasd_acc 0.952 | KD_resp 23.239 (keys 0.164 clk 0.030 mx 12.181 my 10.864) KD_feat 0.858 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 35 | loss 4.6759 | Lclk_acc 0.961 m_x_acc 0.549 m_y_acc 0.591 wasd_acc 0.953 | KD_resp 22.909 (keys 0.170 clk 0.045 mx 12.070 my 10.624) KD_feat 0.858 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 40 | loss 4.6916 | Lclk_acc 0.968 m_x_acc 0.528 m_y_acc 0.592 wasd_acc 0.953 | KD_resp 22.697 (keys 0.167 clk 0.037 mx 11.872 my 10.621) KD_feat 0.853 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 45 | loss 4.5836 | Lclk_acc 0.975 m_x_acc 0.528 m_y_acc 0.590 wasd_acc 0.954 | KD_resp 22.785 (keys 0.164 clk 0.035 mx 11.947 my 10.639) KD_feat 0.857 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 50 | loss 4.5550 | Lclk_acc 0.965 m_x_acc 0.524 m_y_acc 0.592 wasd_acc 0.963 | KD_resp 22.397 (keys 0.156 clk 0.044 mx 11.674 my 10.523) KD_feat 0.818 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 step 55 | loss 4.5397 | Lclk_acc 0.980 m_x_acc 0.538 m_y_acc 0.599 wasd_acc 0.955 | KD_resp 22.147 (keys 0.162 clk 0.030 mx 11.695 my 10.260) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 25 done in 208.3s | train_loss 4.5895 | val_loss 2.2578 | Lclk_acc 0.969 m_x_acc 0.537 m_y_acc 0.594 wasd_acc 0.955 crit_mse 43.763
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 26 step 5 | loss 4.4899 | Lclk_acc 0.966 m_x_acc 0.563 m_y_acc 0.615 wasd_acc 0.955 | KD_resp 21.904 (keys 0.168 clk 0.043 mx 11.493 my 10.200) KD_feat 0.830 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 10 | loss 4.3673 | Lclk_acc 0.975 m_x_acc 0.548 m_y_acc 0.594 wasd_acc 0.960 | KD_resp 21.423 (keys 0.161 clk 0.031 mx 11.201 my 10.030) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 15 | loss 4.5647 | Lclk_acc 0.961 m_x_acc 0.540 m_y_acc 0.606 wasd_acc 0.955 | KD_resp 22.362 (keys 0.163 clk 0.048 mx 11.789 my 10.362) KD_feat 0.854 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 20 | loss 4.6083 | Lclk_acc 0.964 m_x_acc 0.545 m_y_acc 0.603 wasd_acc 0.959 | KD_resp 22.956 (keys 0.161 clk 0.047 mx 12.056 my 10.692) KD_feat 0.825 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 25 | loss 4.9804 | Lclk_acc 0.961 m_x_acc 0.488 m_y_acc 0.555 wasd_acc 0.951 | KD_resp 24.167 (keys 0.170 clk 0.049 mx 12.675 my 11.274) KD_feat 0.876 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 30 | loss 4.8062 | Lclk_acc 0.960 m_x_acc 0.493 m_y_acc 0.557 wasd_acc 0.954 | KD_resp 23.000 (keys 0.165 clk 0.051 mx 11.949 my 10.834) KD_feat 0.842 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 35 | loss 4.6893 | Lclk_acc 0.969 m_x_acc 0.528 m_y_acc 0.578 wasd_acc 0.955 | KD_resp 23.220 (keys 0.164 clk 0.040 mx 12.086 my 10.929) KD_feat 0.846 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 40 | loss 4.6023 | Lclk_acc 0.965 m_x_acc 0.546 m_y_acc 0.604 wasd_acc 0.959 | KD_resp 22.606 (keys 0.163 clk 0.042 mx 11.868 my 10.533) KD_feat 0.845 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 45 | loss 4.3606 | Lclk_acc 0.962 m_x_acc 0.560 m_y_acc 0.615 wasd_acc 0.954 | KD_resp 21.325 (keys 0.167 clk 0.045 mx 11.155 my 9.959) KD_feat 0.835 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 50 | loss 4.8052 | Lclk_acc 0.962 m_x_acc 0.509 m_y_acc 0.577 wasd_acc 0.952 | KD_resp 23.242 (keys 0.173 clk 0.050 mx 12.179 my 10.840) KD_feat 0.855 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 step 55 | loss 4.4566 | Lclk_acc 0.976 m_x_acc 0.544 m_y_acc 0.594 wasd_acc 0.950 | KD_resp 21.699 (keys 0.165 clk 0.034 mx 11.290 my 10.210) KD_feat 0.847 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 26 done in 211.2s | train_loss 4.5354 | val_loss 2.2388 | Lclk_acc 0.970 m_x_acc 0.540 m_y_acc 0.599 wasd_acc 0.955 crit_mse 46.144
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 27 step 5 | loss 4.4916 | Lclk_acc 0.962 m_x_acc 0.540 m_y_acc 0.589 wasd_acc 0.958 | KD_resp 21.984 (keys 0.158 clk 0.042 mx 11.377 my 10.407) KD_feat 0.837 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 10 | loss 4.4506 | Lclk_acc 0.974 m_x_acc 0.544 m_y_acc 0.606 wasd_acc 0.956 | KD_resp 22.041 (keys 0.161 clk 0.036 mx 11.573 my 10.270) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 15 | loss 4.5906 | Lclk_acc 0.952 m_x_acc 0.534 m_y_acc 0.603 wasd_acc 0.956 | KD_resp 22.754 (keys 0.163 clk 0.057 mx 11.964 my 10.569) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 20 | loss 3.9973 | Lclk_acc 0.971 m_x_acc 0.580 m_y_acc 0.645 wasd_acc 0.957 | KD_resp 19.323 (keys 0.155 clk 0.032 mx 10.046 my 9.090) KD_feat 0.768 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 25 | loss 4.4986 | Lclk_acc 0.974 m_x_acc 0.540 m_y_acc 0.590 wasd_acc 0.955 | KD_resp 21.950 (keys 0.165 clk 0.034 mx 11.357 my 10.394) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 30 | loss 4.5437 | Lclk_acc 0.970 m_x_acc 0.536 m_y_acc 0.594 wasd_acc 0.959 | KD_resp 22.386 (keys 0.166 clk 0.038 mx 11.691 my 10.491) KD_feat 0.849 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 35 | loss 4.2524 | Lclk_acc 0.966 m_x_acc 0.553 m_y_acc 0.631 wasd_acc 0.955 | KD_resp 21.128 (keys 0.161 clk 0.042 mx 11.156 my 9.769) KD_feat 0.799 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 40 | loss 4.7115 | Lclk_acc 0.959 m_x_acc 0.519 m_y_acc 0.584 wasd_acc 0.957 | KD_resp 22.633 (keys 0.165 clk 0.053 mx 11.954 my 10.461) KD_feat 0.846 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 45 | loss 4.0191 | Lclk_acc 0.979 m_x_acc 0.585 m_y_acc 0.638 wasd_acc 0.962 | KD_resp 20.030 (keys 0.151 clk 0.030 mx 10.591 my 9.258) KD_feat 0.787 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 50 | loss 4.5819 | Lclk_acc 0.961 m_x_acc 0.528 m_y_acc 0.573 wasd_acc 0.959 | KD_resp 22.508 (keys 0.161 clk 0.049 mx 11.783 my 10.515) KD_feat 0.837 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 step 55 | loss 4.2965 | Lclk_acc 0.964 m_x_acc 0.557 m_y_acc 0.621 wasd_acc 0.959 | KD_resp 20.948 (keys 0.162 clk 0.046 mx 11.026 my 9.713) KD_feat 0.819 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 27 done in 207.2s | train_loss 4.4918 | val_loss 2.2255 | Lclk_acc 0.971 m_x_acc 0.547 m_y_acc 0.600 wasd_acc 0.955 crit_mse 43.760
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 28 step 5 | loss 4.1513 | Lclk_acc 0.968 m_x_acc 0.563 m_y_acc 0.647 wasd_acc 0.957 | KD_resp 20.665 (keys 0.160 clk 0.041 mx 10.923 my 9.540) KD_feat 0.810 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 10 | loss 4.5605 | Lclk_acc 0.962 m_x_acc 0.535 m_y_acc 0.589 wasd_acc 0.954 | KD_resp 22.179 (keys 0.168 clk 0.045 mx 11.634 my 10.332) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 15 | loss 3.8937 | Lclk_acc 0.977 m_x_acc 0.605 m_y_acc 0.651 wasd_acc 0.965 | KD_resp 19.138 (keys 0.151 clk 0.033 mx 9.987 my 8.967) KD_feat 0.791 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 20 | loss 4.5285 | Lclk_acc 0.978 m_x_acc 0.549 m_y_acc 0.582 wasd_acc 0.961 | KD_resp 22.442 (keys 0.159 clk 0.030 mx 11.655 my 10.597) KD_feat 0.839 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 25 | loss 4.5752 | Lclk_acc 0.975 m_x_acc 0.528 m_y_acc 0.578 wasd_acc 0.958 | KD_resp 22.320 (keys 0.163 clk 0.034 mx 11.646 my 10.476) KD_feat 0.854 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 30 | loss 4.3123 | Lclk_acc 0.960 m_x_acc 0.553 m_y_acc 0.609 wasd_acc 0.958 | KD_resp 21.118 (keys 0.158 clk 0.050 mx 11.106 my 9.804) KD_feat 0.818 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 35 | loss 4.5573 | Lclk_acc 0.977 m_x_acc 0.539 m_y_acc 0.592 wasd_acc 0.958 | KD_resp 22.217 (keys 0.158 clk 0.032 mx 11.595 my 10.432) KD_feat 0.819 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 40 | loss 4.4388 | Lclk_acc 0.963 m_x_acc 0.562 m_y_acc 0.597 wasd_acc 0.953 | KD_resp 22.250 (keys 0.164 clk 0.045 mx 11.591 my 10.449) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 45 | loss 4.7179 | Lclk_acc 0.962 m_x_acc 0.510 m_y_acc 0.572 wasd_acc 0.952 | KD_resp 22.971 (keys 0.171 clk 0.044 mx 12.154 my 10.603) KD_feat 0.871 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 50 | loss 4.4673 | Lclk_acc 0.973 m_x_acc 0.544 m_y_acc 0.591 wasd_acc 0.956 | KD_resp 21.735 (keys 0.158 clk 0.035 mx 11.370 my 10.172) KD_feat 0.824 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 step 55 | loss 4.1274 | Lclk_acc 0.971 m_x_acc 0.581 m_y_acc 0.629 wasd_acc 0.961 | KD_resp 20.456 (keys 0.159 clk 0.034 mx 10.680 my 9.584) KD_feat 0.832 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 28 done in 206.1s | train_loss 4.4386 | val_loss 2.2343 | Lclk_acc 0.970 m_x_acc 0.541 m_y_acc 0.605 wasd_acc 0.955 crit_mse 47.370
+epoch 29 step 5 | loss 4.1616 | Lclk_acc 0.965 m_x_acc 0.562 m_y_acc 0.624 wasd_acc 0.953 | KD_resp 20.375 (keys 0.163 clk 0.041 mx 10.746 my 9.426) KD_feat 0.818 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 10 | loss 4.4436 | Lclk_acc 0.972 m_x_acc 0.546 m_y_acc 0.589 wasd_acc 0.950 | KD_resp 21.825 (keys 0.167 clk 0.036 mx 11.405 my 10.217) KD_feat 0.844 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 15 | loss 4.1653 | Lclk_acc 0.975 m_x_acc 0.571 m_y_acc 0.626 wasd_acc 0.959 | KD_resp 20.534 (keys 0.160 clk 0.033 mx 10.819 my 9.523) KD_feat 0.821 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 20 | loss 4.1469 | Lclk_acc 0.967 m_x_acc 0.587 m_y_acc 0.631 wasd_acc 0.960 | KD_resp 20.496 (keys 0.153 clk 0.037 mx 10.742 my 9.564) KD_feat 0.806 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 25 | loss 4.4491 | Lclk_acc 0.967 m_x_acc 0.518 m_y_acc 0.618 wasd_acc 0.957 | KD_resp 21.533 (keys 0.157 clk 0.039 mx 11.258 my 10.078) KD_feat 0.829 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 30 | loss 4.2041 | Lclk_acc 0.963 m_x_acc 0.568 m_y_acc 0.624 wasd_acc 0.956 | KD_resp 20.465 (keys 0.161 clk 0.045 mx 10.821 my 9.438) KD_feat 0.825 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 35 | loss 4.4411 | Lclk_acc 0.971 m_x_acc 0.542 m_y_acc 0.598 wasd_acc 0.954 | KD_resp 21.849 (keys 0.162 clk 0.040 mx 11.456 my 10.191) KD_feat 0.833 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 40 | loss 4.6000 | Lclk_acc 0.967 m_x_acc 0.532 m_y_acc 0.581 wasd_acc 0.957 | KD_resp 22.328 (keys 0.162 clk 0.045 mx 11.617 my 10.504) KD_feat 0.827 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 45 | loss 4.3877 | Lclk_acc 0.966 m_x_acc 0.565 m_y_acc 0.615 wasd_acc 0.955 | KD_resp 21.663 (keys 0.165 clk 0.042 mx 11.237 my 10.218) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 50 | loss 4.0982 | Lclk_acc 0.974 m_x_acc 0.583 m_y_acc 0.624 wasd_acc 0.955 | KD_resp 20.415 (keys 0.160 clk 0.032 mx 10.733 my 9.489) KD_feat 0.808 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 step 55 | loss 4.2750 | Lclk_acc 0.977 m_x_acc 0.561 m_y_acc 0.610 wasd_acc 0.960 | KD_resp 20.746 (keys 0.159 clk 0.032 mx 10.791 my 9.764) KD_feat 0.831 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 29 done in 210.4s | train_loss 4.4063 | val_loss 2.1702 | Lclk_acc 0.973 m_x_acc 0.551 m_y_acc 0.611 wasd_acc 0.955 crit_mse 49.289
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 30 step 5 | loss 4.1723 | Lclk_acc 0.969 m_x_acc 0.561 m_y_acc 0.638 wasd_acc 0.961 | KD_resp 20.374 (keys 0.160 clk 0.038 mx 10.621 my 9.554) KD_feat 0.822 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 10 | loss 4.3867 | Lclk_acc 0.972 m_x_acc 0.550 m_y_acc 0.608 wasd_acc 0.955 | KD_resp 21.701 (keys 0.162 clk 0.036 mx 11.316 my 10.186) KD_feat 0.824 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 15 | loss 4.4158 | Lclk_acc 0.969 m_x_acc 0.541 m_y_acc 0.597 wasd_acc 0.956 | KD_resp 21.622 (keys 0.157 clk 0.039 mx 11.278 my 10.147) KD_feat 0.821 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 20 | loss 3.8790 | Lclk_acc 0.979 m_x_acc 0.595 m_y_acc 0.647 wasd_acc 0.961 | KD_resp 19.210 (keys 0.153 clk 0.028 mx 10.132 my 8.897) KD_feat 0.786 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 25 | loss 4.1668 | Lclk_acc 0.970 m_x_acc 0.576 m_y_acc 0.614 wasd_acc 0.962 | KD_resp 20.184 (keys 0.153 clk 0.038 mx 10.500 my 9.494) KD_feat 0.799 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 30 | loss 4.4326 | Lclk_acc 0.971 m_x_acc 0.534 m_y_acc 0.592 wasd_acc 0.957 | KD_resp 21.822 (keys 0.159 clk 0.037 mx 11.428 my 10.199) KD_feat 0.820 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 35 | loss 4.3792 | Lclk_acc 0.973 m_x_acc 0.538 m_y_acc 0.615 wasd_acc 0.956 | KD_resp 21.387 (keys 0.160 clk 0.034 mx 11.228 my 9.965) KD_feat 0.830 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 40 | loss 4.6691 | Lclk_acc 0.980 m_x_acc 0.505 m_y_acc 0.570 wasd_acc 0.947 | KD_resp 22.594 (keys 0.169 clk 0.030 mx 11.770 my 10.624) KD_feat 0.870 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 45 | loss 4.6359 | Lclk_acc 0.965 m_x_acc 0.526 m_y_acc 0.591 wasd_acc 0.955 | KD_resp 22.808 (keys 0.166 clk 0.042 mx 12.069 my 10.530) KD_feat 0.861 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 50 | loss 4.8012 | Lclk_acc 0.960 m_x_acc 0.500 m_y_acc 0.561 wasd_acc 0.954 | KD_resp 23.274 (keys 0.165 clk 0.048 mx 12.255 my 10.806) KD_feat 0.872 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 step 55 | loss 4.2167 | Lclk_acc 0.967 m_x_acc 0.556 m_y_acc 0.620 wasd_acc 0.959 | KD_resp 20.549 (keys 0.157 clk 0.041 mx 10.840 my 9.511) KD_feat 0.811 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 30 done in 211.4s | train_loss 4.3692 | val_loss 2.1763 | Lclk_acc 0.972 m_x_acc 0.549 m_y_acc 0.610 wasd_acc 0.956 crit_mse 50.151
+epoch 31 step 5 | loss 4.7110 | Lclk_acc 0.956 m_x_acc 0.524 m_y_acc 0.565 wasd_acc 0.948 | KD_resp 22.942 (keys 0.170 clk 0.056 mx 11.953 my 10.763) KD_feat 0.867 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 10 | loss 4.6984 | Lclk_acc 0.960 m_x_acc 0.528 m_y_acc 0.565 wasd_acc 0.947 | KD_resp 23.040 (keys 0.175 clk 0.046 mx 12.011 my 10.807) KD_feat 0.872 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 15 | loss 3.9653 | Lclk_acc 0.966 m_x_acc 0.589 m_y_acc 0.668 wasd_acc 0.955 | KD_resp 19.487 (keys 0.161 clk 0.040 mx 10.300 my 8.986) KD_feat 0.812 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 20 | loss 4.4007 | Lclk_acc 0.975 m_x_acc 0.545 m_y_acc 0.600 wasd_acc 0.955 | KD_resp 21.745 (keys 0.161 clk 0.028 mx 11.377 my 10.179) KD_feat 0.833 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 25 | loss 4.3524 | Lclk_acc 0.973 m_x_acc 0.558 m_y_acc 0.599 wasd_acc 0.959 | KD_resp 21.658 (keys 0.158 clk 0.032 mx 11.354 my 10.114) KD_feat 0.816 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 30 | loss 4.4498 | Lclk_acc 0.975 m_x_acc 0.538 m_y_acc 0.577 wasd_acc 0.952 | KD_resp 21.622 (keys 0.167 clk 0.035 mx 11.334 my 10.085) KD_feat 0.848 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 35 | loss 4.4482 | Lclk_acc 0.959 m_x_acc 0.526 m_y_acc 0.603 wasd_acc 0.957 | KD_resp 21.314 (keys 0.164 clk 0.052 mx 11.225 my 9.874) KD_feat 0.833 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 40 | loss 4.4713 | Lclk_acc 0.970 m_x_acc 0.533 m_y_acc 0.600 wasd_acc 0.956 | KD_resp 21.929 (keys 0.162 clk 0.036 mx 11.460 my 10.271) KD_feat 0.843 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 45 | loss 4.2422 | Lclk_acc 0.974 m_x_acc 0.552 m_y_acc 0.607 wasd_acc 0.959 | KD_resp 20.442 (keys 0.161 clk 0.036 mx 10.789 my 9.456) KD_feat 0.822 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 50 | loss 4.2828 | Lclk_acc 0.977 m_x_acc 0.549 m_y_acc 0.609 wasd_acc 0.959 | KD_resp 21.091 (keys 0.158 clk 0.034 mx 11.003 my 9.895) KD_feat 0.834 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 step 55 | loss 4.3926 | Lclk_acc 0.960 m_x_acc 0.559 m_y_acc 0.618 wasd_acc 0.961 | KD_resp 21.602 (keys 0.161 clk 0.048 mx 11.288 my 10.104) KD_feat 0.830 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 31 done in 209.4s | train_loss 4.3364 | val_loss 2.1453 | Lclk_acc 0.972 m_x_acc 0.552 m_y_acc 0.617 wasd_acc 0.955 crit_mse 50.119
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 32 step 5 | loss 4.2156 | Lclk_acc 0.967 m_x_acc 0.570 m_y_acc 0.632 wasd_acc 0.957 | KD_resp 20.426 (keys 0.166 clk 0.044 mx 10.826 my 9.390) KD_feat 0.829 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 10 | loss 4.2302 | Lclk_acc 0.977 m_x_acc 0.565 m_y_acc 0.626 wasd_acc 0.956 | KD_resp 20.562 (keys 0.163 clk 0.030 mx 10.753 my 9.616) KD_feat 0.828 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 15 | loss 4.4652 | Lclk_acc 0.962 m_x_acc 0.549 m_y_acc 0.579 wasd_acc 0.956 | KD_resp 21.862 (keys 0.157 clk 0.046 mx 11.319 my 10.340) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 20 | loss 4.7430 | Lclk_acc 0.965 m_x_acc 0.504 m_y_acc 0.589 wasd_acc 0.946 | KD_resp 22.993 (keys 0.177 clk 0.049 mx 12.219 my 10.549) KD_feat 0.881 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 25 | loss 4.7952 | Lclk_acc 0.963 m_x_acc 0.508 m_y_acc 0.559 wasd_acc 0.951 | KD_resp 23.396 (keys 0.169 clk 0.049 mx 12.231 my 10.946) KD_feat 0.863 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 30 | loss 4.1506 | Lclk_acc 0.977 m_x_acc 0.585 m_y_acc 0.626 wasd_acc 0.958 | KD_resp 20.369 (keys 0.160 clk 0.033 mx 10.661 my 9.515) KD_feat 0.846 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 35 | loss 4.1370 | Lclk_acc 0.974 m_x_acc 0.561 m_y_acc 0.629 wasd_acc 0.958 | KD_resp 20.377 (keys 0.162 clk 0.039 mx 10.673 my 9.503) KD_feat 0.825 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 40 | loss 4.4542 | Lclk_acc 0.974 m_x_acc 0.548 m_y_acc 0.599 wasd_acc 0.953 | KD_resp 22.019 (keys 0.163 clk 0.034 mx 11.566 my 10.255) KD_feat 0.843 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 45 | loss 4.2032 | Lclk_acc 0.975 m_x_acc 0.567 m_y_acc 0.618 wasd_acc 0.960 | KD_resp 20.455 (keys 0.156 clk 0.031 mx 10.746 my 9.522) KD_feat 0.820 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 50 | loss 3.7313 | Lclk_acc 0.967 m_x_acc 0.611 m_y_acc 0.661 wasd_acc 0.966 | KD_resp 18.054 (keys 0.148 clk 0.040 mx 9.504 my 8.362) KD_feat 0.773 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 step 55 | loss 4.3407 | Lclk_acc 0.972 m_x_acc 0.556 m_y_acc 0.615 wasd_acc 0.962 | KD_resp 21.457 (keys 0.162 clk 0.036 mx 11.221 my 10.038) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 32 done in 208.3s | train_loss 4.3160 | val_loss 2.1540 | Lclk_acc 0.971 m_x_acc 0.551 m_y_acc 0.612 wasd_acc 0.956 crit_mse 50.577
+epoch 33 step 5 | loss 4.3950 | Lclk_acc 0.964 m_x_acc 0.537 m_y_acc 0.619 wasd_acc 0.958 | KD_resp 21.265 (keys 0.163 clk 0.044 mx 11.308 my 9.750) KD_feat 0.832 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 10 | loss 4.4015 | Lclk_acc 0.969 m_x_acc 0.538 m_y_acc 0.621 wasd_acc 0.958 | KD_resp 21.786 (keys 0.167 clk 0.040 mx 11.603 my 9.976) KD_feat 0.852 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 15 | loss 4.0619 | Lclk_acc 0.966 m_x_acc 0.589 m_y_acc 0.641 wasd_acc 0.963 | KD_resp 20.057 (keys 0.150 clk 0.042 mx 10.514 my 9.351) KD_feat 0.804 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 20 | loss 4.3814 | Lclk_acc 0.968 m_x_acc 0.550 m_y_acc 0.604 wasd_acc 0.956 | KD_resp 21.554 (keys 0.159 clk 0.038 mx 11.312 my 10.045) KD_feat 0.826 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 25 | loss 3.9510 | Lclk_acc 0.972 m_x_acc 0.599 m_y_acc 0.637 wasd_acc 0.962 | KD_resp 19.427 (keys 0.155 clk 0.036 mx 10.064 my 9.172) KD_feat 0.796 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 30 | loss 4.4159 | Lclk_acc 0.974 m_x_acc 0.542 m_y_acc 0.605 wasd_acc 0.960 | KD_resp 22.097 (keys 0.157 clk 0.034 mx 11.644 my 10.261) KD_feat 0.841 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 35 | loss 4.1100 | Lclk_acc 0.969 m_x_acc 0.567 m_y_acc 0.633 wasd_acc 0.963 | KD_resp 20.387 (keys 0.154 clk 0.038 mx 10.755 my 9.440) KD_feat 0.807 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 40 | loss 4.5271 | Lclk_acc 0.969 m_x_acc 0.533 m_y_acc 0.585 wasd_acc 0.952 | KD_resp 21.850 (keys 0.167 clk 0.041 mx 11.395 my 10.247) KD_feat 0.836 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 45 | loss 4.4421 | Lclk_acc 0.965 m_x_acc 0.547 m_y_acc 0.596 wasd_acc 0.957 | KD_resp 21.689 (keys 0.163 clk 0.043 mx 11.394 my 10.088) KD_feat 0.846 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 50 | loss 4.4755 | Lclk_acc 0.976 m_x_acc 0.527 m_y_acc 0.594 wasd_acc 0.957 | KD_resp 22.354 (keys 0.161 clk 0.031 mx 11.680 my 10.482) KD_feat 0.846 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 step 55 | loss 4.2733 | Lclk_acc 0.976 m_x_acc 0.559 m_y_acc 0.619 wasd_acc 0.956 | KD_resp 21.008 (keys 0.162 clk 0.029 mx 10.971 my 9.846) KD_feat 0.843 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 33 done in 212.4s | train_loss 4.2876 | val_loss 2.1319 | Lclk_acc 0.972 m_x_acc 0.551 m_y_acc 0.617 wasd_acc 0.955 crit_mse 51.013
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 34 step 5 | loss 4.7327 | Lclk_acc 0.968 m_x_acc 0.505 m_y_acc 0.578 wasd_acc 0.954 | KD_resp 22.764 (keys 0.172 clk 0.038 mx 11.993 my 10.562) KD_feat 0.864 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 10 | loss 4.4940 | Lclk_acc 0.977 m_x_acc 0.526 m_y_acc 0.580 wasd_acc 0.955 | KD_resp 21.903 (keys 0.164 clk 0.031 mx 11.575 my 10.133) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 15 | loss 4.5676 | Lclk_acc 0.974 m_x_acc 0.524 m_y_acc 0.602 wasd_acc 0.957 | KD_resp 22.417 (keys 0.165 clk 0.035 mx 11.832 my 10.385) KD_feat 0.838 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 20 | loss 4.1815 | Lclk_acc 0.963 m_x_acc 0.565 m_y_acc 0.622 wasd_acc 0.953 | KD_resp 20.393 (keys 0.165 clk 0.045 mx 10.747 my 9.436) KD_feat 0.829 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 25 | loss 4.1933 | Lclk_acc 0.972 m_x_acc 0.567 m_y_acc 0.620 wasd_acc 0.957 | KD_resp 20.508 (keys 0.165 clk 0.039 mx 10.707 my 9.597) KD_feat 0.831 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 30 | loss 4.2527 | Lclk_acc 0.968 m_x_acc 0.570 m_y_acc 0.630 wasd_acc 0.958 | KD_resp 20.977 (keys 0.156 clk 0.040 mx 10.941 my 9.840) KD_feat 0.813 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 35 | loss 4.0523 | Lclk_acc 0.979 m_x_acc 0.567 m_y_acc 0.630 wasd_acc 0.955 | KD_resp 19.940 (keys 0.158 clk 0.028 mx 10.484 my 9.270) KD_feat 0.817 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 40 | loss 4.2716 | Lclk_acc 0.976 m_x_acc 0.558 m_y_acc 0.614 wasd_acc 0.956 | KD_resp 20.791 (keys 0.161 clk 0.031 mx 10.831 my 9.768) KD_feat 0.822 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 45 | loss 4.3074 | Lclk_acc 0.963 m_x_acc 0.552 m_y_acc 0.622 wasd_acc 0.962 | KD_resp 21.004 (keys 0.160 clk 0.047 mx 10.964 my 9.834) KD_feat 0.829 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 50 | loss 4.0733 | Lclk_acc 0.983 m_x_acc 0.573 m_y_acc 0.629 wasd_acc 0.957 | KD_resp 19.836 (keys 0.158 clk 0.027 mx 10.368 my 9.282) KD_feat 0.808 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 step 55 | loss 4.1100 | Lclk_acc 0.977 m_x_acc 0.574 m_y_acc 0.652 wasd_acc 0.960 | KD_resp 20.277 (keys 0.160 clk 0.031 mx 10.664 my 9.422) KD_feat 0.819 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 34 done in 209.3s | train_loss 4.2807 | val_loss 2.1319 | Lclk_acc 0.973 m_x_acc 0.552 m_y_acc 0.616 wasd_acc 0.956 crit_mse 51.748
+epoch 35 step 5 | loss 4.3532 | Lclk_acc 0.955 m_x_acc 0.546 m_y_acc 0.613 wasd_acc 0.955 | KD_resp 21.402 (keys 0.167 clk 0.052 mx 11.317 my 9.866) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 10 | loss 3.9755 | Lclk_acc 0.974 m_x_acc 0.586 m_y_acc 0.644 wasd_acc 0.960 | KD_resp 19.581 (keys 0.160 clk 0.035 mx 10.293 my 9.093) KD_feat 0.811 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 15 | loss 4.2355 | Lclk_acc 0.981 m_x_acc 0.549 m_y_acc 0.620 wasd_acc 0.958 | KD_resp 20.826 (keys 0.163 clk 0.027 mx 11.118 my 9.519) KD_feat 0.816 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 20 | loss 3.9294 | Lclk_acc 0.972 m_x_acc 0.585 m_y_acc 0.639 wasd_acc 0.966 | KD_resp 19.389 (keys 0.147 clk 0.036 mx 10.086 my 9.119) KD_feat 0.795 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 25 | loss 4.4129 | Lclk_acc 0.967 m_x_acc 0.541 m_y_acc 0.596 wasd_acc 0.957 | KD_resp 21.522 (keys 0.160 clk 0.042 mx 11.324 my 9.997) KD_feat 0.826 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 30 | loss 4.1111 | Lclk_acc 0.972 m_x_acc 0.562 m_y_acc 0.618 wasd_acc 0.953 | KD_resp 19.822 (keys 0.159 clk 0.034 mx 10.407 my 9.222) KD_feat 0.822 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 35 | loss 4.2371 | Lclk_acc 0.956 m_x_acc 0.560 m_y_acc 0.634 wasd_acc 0.967 | KD_resp 20.785 (keys 0.152 clk 0.054 mx 11.000 my 9.579) KD_feat 0.817 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 40 | loss 4.1330 | Lclk_acc 0.972 m_x_acc 0.563 m_y_acc 0.624 wasd_acc 0.964 | KD_resp 20.531 (keys 0.150 clk 0.036 mx 10.701 my 9.643) KD_feat 0.810 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 45 | loss 4.2098 | Lclk_acc 0.969 m_x_acc 0.560 m_y_acc 0.624 wasd_acc 0.958 | KD_resp 20.658 (keys 0.161 clk 0.042 mx 10.898 my 9.557) KD_feat 0.824 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 50 | loss 4.2403 | Lclk_acc 0.952 m_x_acc 0.565 m_y_acc 0.620 wasd_acc 0.955 | KD_resp 20.575 (keys 0.162 clk 0.057 mx 10.839 my 9.517) KD_feat 0.811 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 step 55 | loss 4.3270 | Lclk_acc 0.965 m_x_acc 0.555 m_y_acc 0.602 wasd_acc 0.956 | KD_resp 21.136 (keys 0.167 clk 0.038 mx 11.016 my 9.916) KD_feat 0.858 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 35 done in 211.8s | train_loss 4.2599 | val_loss 2.1339 | Lclk_acc 0.972 m_x_acc 0.553 m_y_acc 0.621 wasd_acc 0.955 crit_mse 51.681
+epoch 36 step 5 | loss 4.5063 | Lclk_acc 0.968 m_x_acc 0.527 m_y_acc 0.585 wasd_acc 0.955 | KD_resp 22.209 (keys 0.165 clk 0.038 mx 11.638 my 10.367) KD_feat 0.854 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 10 | loss 4.1011 | Lclk_acc 0.967 m_x_acc 0.571 m_y_acc 0.611 wasd_acc 0.964 | KD_resp 19.888 (keys 0.152 clk 0.038 mx 10.381 my 9.318) KD_feat 0.818 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 15 | loss 4.3068 | Lclk_acc 0.961 m_x_acc 0.546 m_y_acc 0.603 wasd_acc 0.962 | KD_resp 20.905 (keys 0.157 clk 0.044 mx 11.001 my 9.703) KD_feat 0.825 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 20 | loss 4.1131 | Lclk_acc 0.964 m_x_acc 0.567 m_y_acc 0.645 wasd_acc 0.956 | KD_resp 20.462 (keys 0.160 clk 0.042 mx 10.808 my 9.451) KD_feat 0.812 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 25 | loss 4.1619 | Lclk_acc 0.970 m_x_acc 0.563 m_y_acc 0.618 wasd_acc 0.959 | KD_resp 20.229 (keys 0.159 clk 0.038 mx 10.712 my 9.319) KD_feat 0.814 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 30 | loss 4.5907 | Lclk_acc 0.970 m_x_acc 0.532 m_y_acc 0.573 wasd_acc 0.946 | KD_resp 22.229 (keys 0.175 clk 0.039 mx 11.590 my 10.425) KD_feat 0.858 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 35 | loss 4.2317 | Lclk_acc 0.975 m_x_acc 0.550 m_y_acc 0.614 wasd_acc 0.954 | KD_resp 20.984 (keys 0.161 clk 0.032 mx 10.956 my 9.834) KD_feat 0.827 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 40 | loss 4.4300 | Lclk_acc 0.975 m_x_acc 0.541 m_y_acc 0.597 wasd_acc 0.952 | KD_resp 21.439 (keys 0.164 clk 0.035 mx 11.218 my 10.021) KD_feat 0.844 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 45 | loss 4.6636 | Lclk_acc 0.961 m_x_acc 0.512 m_y_acc 0.565 wasd_acc 0.955 | KD_resp 22.678 (keys 0.164 clk 0.050 mx 11.852 my 10.612) KD_feat 0.835 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 50 | loss 4.2937 | Lclk_acc 0.967 m_x_acc 0.544 m_y_acc 0.622 wasd_acc 0.961 | KD_resp 21.116 (keys 0.153 clk 0.040 mx 11.129 my 9.795) KD_feat 0.828 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 step 55 | loss 3.9503 | Lclk_acc 0.979 m_x_acc 0.584 m_y_acc 0.647 wasd_acc 0.952 | KD_resp 19.184 (keys 0.161 clk 0.029 mx 10.045 my 8.950) KD_feat 0.783 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 36 done in 214.3s | train_loss 4.2382 | val_loss 2.1485 | Lclk_acc 0.971 m_x_acc 0.557 m_y_acc 0.617 wasd_acc 0.956 crit_mse 53.338
+epoch 37 step 5 | loss 4.3188 | Lclk_acc 0.973 m_x_acc 0.550 m_y_acc 0.615 wasd_acc 0.955 | KD_resp 21.182 (keys 0.161 clk 0.034 mx 11.114 my 9.874) KD_feat 0.841 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 10 | loss 4.2217 | Lclk_acc 0.970 m_x_acc 0.542 m_y_acc 0.630 wasd_acc 0.960 | KD_resp 21.051 (keys 0.154 clk 0.039 mx 11.129 my 9.729) KD_feat 0.814 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 15 | loss 4.3452 | Lclk_acc 0.967 m_x_acc 0.544 m_y_acc 0.607 wasd_acc 0.958 | KD_resp 21.327 (keys 0.161 clk 0.041 mx 11.150 my 9.974) KD_feat 0.861 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 20 | loss 4.0558 | Lclk_acc 0.977 m_x_acc 0.573 m_y_acc 0.645 wasd_acc 0.955 | KD_resp 20.129 (keys 0.165 clk 0.032 mx 10.658 my 9.273) KD_feat 0.805 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 25 | loss 4.3228 | Lclk_acc 0.977 m_x_acc 0.535 m_y_acc 0.603 wasd_acc 0.956 | KD_resp 21.245 (keys 0.160 clk 0.033 mx 11.271 my 9.781) KD_feat 0.820 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 30 | loss 3.9479 | Lclk_acc 0.975 m_x_acc 0.577 m_y_acc 0.646 wasd_acc 0.963 | KD_resp 19.605 (keys 0.154 clk 0.031 mx 10.285 my 9.135) KD_feat 0.797 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 35 | loss 4.2669 | Lclk_acc 0.976 m_x_acc 0.567 m_y_acc 0.626 wasd_acc 0.957 | KD_resp 21.092 (keys 0.164 clk 0.031 mx 11.047 my 9.850) KD_feat 0.845 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 40 | loss 4.0805 | Lclk_acc 0.981 m_x_acc 0.582 m_y_acc 0.634 wasd_acc 0.960 | KD_resp 20.255 (keys 0.153 clk 0.026 mx 10.575 my 9.501) KD_feat 0.816 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 45 | loss 4.2527 | Lclk_acc 0.966 m_x_acc 0.544 m_y_acc 0.624 wasd_acc 0.958 | KD_resp 21.064 (keys 0.158 clk 0.044 mx 11.147 my 9.715) KD_feat 0.824 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 50 | loss 4.0863 | Lclk_acc 0.973 m_x_acc 0.563 m_y_acc 0.634 wasd_acc 0.956 | KD_resp 19.814 (keys 0.159 clk 0.037 mx 10.513 my 9.105) KD_feat 0.805 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 step 55 | loss 4.5216 | Lclk_acc 0.965 m_x_acc 0.519 m_y_acc 0.602 wasd_acc 0.960 | KD_resp 21.974 (keys 0.159 clk 0.042 mx 11.462 my 10.311) KD_feat 0.843 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 37 done in 209.8s | train_loss 4.2347 | val_loss 2.0983 | Lclk_acc 0.972 m_x_acc 0.561 m_y_acc 0.622 wasd_acc 0.956 crit_mse 53.655
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 38 step 5 | loss 3.9306 | Lclk_acc 0.971 m_x_acc 0.594 m_y_acc 0.638 wasd_acc 0.962 | KD_resp 19.120 (keys 0.154 clk 0.033 mx 10.057 my 8.877) KD_feat 0.797 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 10 | loss 3.6792 | Lclk_acc 0.981 m_x_acc 0.616 m_y_acc 0.660 wasd_acc 0.962 | KD_resp 18.103 (keys 0.147 clk 0.025 mx 9.538 my 8.393) KD_feat 0.765 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 15 | loss 3.9594 | Lclk_acc 0.976 m_x_acc 0.585 m_y_acc 0.654 wasd_acc 0.966 | KD_resp 19.718 (keys 0.145 clk 0.035 mx 10.352 my 9.186) KD_feat 0.796 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 20 | loss 4.3816 | Lclk_acc 0.961 m_x_acc 0.534 m_y_acc 0.621 wasd_acc 0.962 | KD_resp 20.940 (keys 0.157 clk 0.048 mx 11.102 my 9.634) KD_feat 0.816 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 25 | loss 4.1187 | Lclk_acc 0.973 m_x_acc 0.580 m_y_acc 0.634 wasd_acc 0.957 | KD_resp 20.033 (keys 0.157 clk 0.034 mx 10.584 my 9.258) KD_feat 0.794 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 30 | loss 4.5006 | Lclk_acc 0.966 m_x_acc 0.536 m_y_acc 0.594 wasd_acc 0.950 | KD_resp 21.931 (keys 0.168 clk 0.043 mx 11.419 my 10.301) KD_feat 0.844 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 35 | loss 4.3588 | Lclk_acc 0.970 m_x_acc 0.534 m_y_acc 0.617 wasd_acc 0.956 | KD_resp 21.190 (keys 0.166 clk 0.036 mx 11.228 my 9.760) KD_feat 0.841 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 40 | loss 3.9391 | Lclk_acc 0.979 m_x_acc 0.573 m_y_acc 0.632 wasd_acc 0.957 | KD_resp 19.154 (keys 0.163 clk 0.033 mx 10.037 my 8.922) KD_feat 0.828 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 45 | loss 4.4699 | Lclk_acc 0.969 m_x_acc 0.543 m_y_acc 0.595 wasd_acc 0.955 | KD_resp 21.837 (keys 0.164 clk 0.042 mx 11.568 my 10.063) KD_feat 0.849 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 50 | loss 4.4080 | Lclk_acc 0.974 m_x_acc 0.523 m_y_acc 0.613 wasd_acc 0.951 | KD_resp 21.758 (keys 0.169 clk 0.035 mx 11.394 my 10.159) KD_feat 0.834 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 step 55 | loss 4.3603 | Lclk_acc 0.962 m_x_acc 0.534 m_y_acc 0.606 wasd_acc 0.957 | KD_resp 21.235 (keys 0.162 clk 0.046 mx 11.232 my 9.794) KD_feat 0.835 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 38 done in 211.0s | train_loss 4.2286 | val_loss 2.0898 | Lclk_acc 0.973 m_x_acc 0.562 m_y_acc 0.618 wasd_acc 0.956 crit_mse 53.893
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 39 step 5 | loss 4.4364 | Lclk_acc 0.965 m_x_acc 0.545 m_y_acc 0.589 wasd_acc 0.957 | KD_resp 21.334 (keys 0.160 clk 0.042 mx 11.094 my 10.038) KD_feat 0.830 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 10 | loss 4.0686 | Lclk_acc 0.972 m_x_acc 0.574 m_y_acc 0.631 wasd_acc 0.962 | KD_resp 19.824 (keys 0.156 clk 0.038 mx 10.342 my 9.287) KD_feat 0.803 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 15 | loss 4.6685 | Lclk_acc 0.965 m_x_acc 0.507 m_y_acc 0.590 wasd_acc 0.949 | KD_resp 22.820 (keys 0.168 clk 0.045 mx 12.107 my 10.501) KD_feat 0.868 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 20 | loss 4.0730 | Lclk_acc 0.972 m_x_acc 0.589 m_y_acc 0.618 wasd_acc 0.959 | KD_resp 19.971 (keys 0.160 clk 0.039 mx 10.379 my 9.393) KD_feat 0.821 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 25 | loss 3.8959 | Lclk_acc 0.973 m_x_acc 0.602 m_y_acc 0.651 wasd_acc 0.956 | KD_resp 19.243 (keys 0.161 clk 0.033 mx 10.047 my 9.002) KD_feat 0.808 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 30 | loss 3.9826 | Lclk_acc 0.970 m_x_acc 0.584 m_y_acc 0.648 wasd_acc 0.960 | KD_resp 19.137 (keys 0.156 clk 0.042 mx 10.092 my 8.847) KD_feat 0.783 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 35 | loss 4.2469 | Lclk_acc 0.969 m_x_acc 0.536 m_y_acc 0.615 wasd_acc 0.956 | KD_resp 20.774 (keys 0.157 clk 0.040 mx 10.970 my 9.607) KD_feat 0.807 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 40 | loss 4.1677 | Lclk_acc 0.964 m_x_acc 0.584 m_y_acc 0.638 wasd_acc 0.961 | KD_resp 20.115 (keys 0.159 clk 0.045 mx 10.706 my 9.206) KD_feat 0.803 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 45 | loss 4.4439 | Lclk_acc 0.965 m_x_acc 0.532 m_y_acc 0.597 wasd_acc 0.957 | KD_resp 21.679 (keys 0.164 clk 0.044 mx 11.353 my 10.119) KD_feat 0.837 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 50 | loss 4.1938 | Lclk_acc 0.977 m_x_acc 0.557 m_y_acc 0.621 wasd_acc 0.961 | KD_resp 20.591 (keys 0.158 clk 0.033 mx 10.818 my 9.582) KD_feat 0.822 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 step 55 | loss 4.4904 | Lclk_acc 0.965 m_x_acc 0.544 m_y_acc 0.617 wasd_acc 0.954 | KD_resp 21.710 (keys 0.170 clk 0.042 mx 11.523 my 9.975) KD_feat 0.840 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 39 done in 213.5s | train_loss 4.2363 | val_loss 2.0842 | Lclk_acc 0.972 m_x_acc 0.563 m_y_acc 0.624 wasd_acc 0.956 crit_mse 54.744
+updated best model: /root/AIGameBots/transformer_v0/checkpoints/student_best_kd.pt
+epoch 40 step 5 | loss 4.3950 | Lclk_acc 0.972 m_x_acc 0.544 m_y_acc 0.601 wasd_acc 0.955 | KD_resp 21.322 (keys 0.160 clk 0.035 mx 11.122 my 10.005) KD_feat 0.836 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 10 | loss 3.7584 | Lclk_acc 0.971 m_x_acc 0.612 m_y_acc 0.656 wasd_acc 0.962 | KD_resp 18.281 (keys 0.149 clk 0.034 mx 9.610 my 8.487) KD_feat 0.767 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 15 | loss 3.9385 | Lclk_acc 0.979 m_x_acc 0.593 m_y_acc 0.640 wasd_acc 0.958 | KD_resp 19.244 (keys 0.156 clk 0.030 mx 10.018 my 9.041) KD_feat 0.801 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 20 | loss 3.9131 | Lclk_acc 0.975 m_x_acc 0.590 m_y_acc 0.634 wasd_acc 0.962 | KD_resp 19.275 (keys 0.160 clk 0.031 mx 10.039 my 9.045) KD_feat 0.808 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 25 | loss 4.5254 | Lclk_acc 0.960 m_x_acc 0.543 m_y_acc 0.612 wasd_acc 0.952 | KD_resp 22.149 (keys 0.167 clk 0.049 mx 11.545 my 10.388) KD_feat 0.850 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 30 | loss 4.0385 | Lclk_acc 0.971 m_x_acc 0.589 m_y_acc 0.628 wasd_acc 0.958 | KD_resp 19.756 (keys 0.160 clk 0.034 mx 10.284 my 9.278) KD_feat 0.822 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 35 | loss 4.4608 | Lclk_acc 0.966 m_x_acc 0.521 m_y_acc 0.594 wasd_acc 0.957 | KD_resp 21.703 (keys 0.161 clk 0.040 mx 11.410 my 10.091) KD_feat 0.859 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 40 | loss 4.3585 | Lclk_acc 0.977 m_x_acc 0.531 m_y_acc 0.630 wasd_acc 0.956 | KD_resp 21.590 (keys 0.160 clk 0.035 mx 11.428 my 9.968) KD_feat 0.832 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 45 | loss 4.5864 | Lclk_acc 0.964 m_x_acc 0.532 m_y_acc 0.577 wasd_acc 0.953 | KD_resp 22.413 (keys 0.164 clk 0.043 mx 11.686 my 10.519) KD_feat 0.845 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 50 | loss 4.0369 | Lclk_acc 0.976 m_x_acc 0.586 m_y_acc 0.641 wasd_acc 0.959 | KD_resp 19.843 (keys 0.157 clk 0.032 mx 10.384 my 9.270) KD_feat 0.803 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 step 55 | loss 3.8793 | Lclk_acc 0.964 m_x_acc 0.604 m_y_acc 0.646 wasd_acc 0.966 | KD_resp 18.746 (keys 0.145 clk 0.044 mx 9.833 my 8.724) KD_feat 0.779 kw 1.00 a 0.10 b 0.05 T 4.0
+epoch 40 done in 207.2s | train_loss 4.2156 | val_loss 2.1012 | Lclk_acc 0.973 m_x_acc 0.559 m_y_acc 0.622 wasd_acc 0.957 crit_mse 53.593
