@@ -532,12 +532,12 @@ def train(args: argparse.Namespace) -> None:
             f"wasd_acc {val_metrics['wasd_acc']:.3f} crit_mse {val_metrics['crit_mse']:.3f}"
         )
 
-        # Save last checkpoint every epoch
-        if getattr(args, 'kd', False):
-            last_path = os.path.join(args.save_dir, "student_last_kd.pt")
-        else:
-            last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter3.pt")
-        save_checkpoint(last_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
+        # # Save last checkpoint every epoch
+        # if getattr(args, 'kd', False):
+        #     last_path = os.path.join(args.save_dir, "student_last_kd.pt")
+        # else:
+        #     last_path = os.path.join(args.save_dir, f"{args.model_name}_last_iter3.pt")
+        # save_checkpoint(last_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
 
         # Track and save best based on validation loss
         if val_loss < best_loss:
@@ -545,14 +545,14 @@ def train(args: argparse.Namespace) -> None:
             if getattr(args, 'kd', False):
                 best_path = os.path.join(args.save_dir, "student_best_kd.pt")
             else:
-                best_path = os.path.join(args.save_dir, f"{args.model_name}_best_iter3.pt")
+                best_path = os.path.join(args.save_dir, f"{args.model_name}_teacher_best.pt")
             save_checkpoint(best_path, model, optimizer, scaler, scheduler, epoch, global_step, best_loss, args)
             print(f"updated best model: {best_path}")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train ViViT CSGO behavioral cloning model")
     parser.add_argument('--model_name', type=str, default='vivit_vitb16', help="Model configuration name")
-    parser.add_argument('--batch_size', type=int, default=10, help="Batch size")
+    parser.add_argument('--batch_size', type=int, default=14, help="Batch size")
     parser.add_argument('--epochs', type=int, default=40, help="Number of epochs")
     parser.add_argument('--lr', type=float, default=1e-4, help="Learning rate")
     parser.add_argument('--weight_decay', type=float, default=0.05, help="Weight decay for AdamW")
@@ -563,13 +563,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--n_jitter', type=int, default=1, help="Temporal jitter frames")
     parser.add_argument('--is_mirror', action='store_true', help="Enable mirror augmentation")
     parser.add_argument('--data_dir', type=str, default='/root/AIGameBots/Counter-Strike_Behavioural_Cloning/dataset_dm_expert_dust2/', help="Dataset directory")
-    parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints'), help="Checkpoint directory")
+    parser.add_argument('--save_dir', type=str, default=os.path.join(os.path.dirname(__file__), 'checkpoints_new_kd'), help="Checkpoint directory")
     parser.add_argument('--pretrained', action='store_true', help="Use pretrained ViT weights for spatial encoder")
     parser.add_argument('--freeze_backbone', action='store_true', help="Freeze pretrained spatial encoder weights during training")
     parser.set_defaults(pretrained=True)
     parser.set_defaults(freeze_backbone=False)
-    parser.add_argument('--num_workers', type=int, default=4, help="DataLoader workers")
-    parser.add_argument('--log_every', type=int, default=5, help="Steps between logs")
+    parser.add_argument('--num_workers', type=int, default=8, help="DataLoader workers")
+    parser.add_argument('--log_every', type=int, default=10, help="Steps between logs")
     parser.add_argument('--resume', type=str, default='', help="Path to checkpoint (.pt) to resume training from")
     parser.add_argument('--temporal_depth', type=int, default=8, help="Temporal depth")
     # Toggle feeding previous actions as auxiliary input
