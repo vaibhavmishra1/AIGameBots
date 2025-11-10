@@ -144,6 +144,7 @@ def compute_custom_loss(
     y_true: torch.Tensor,
     mouse_sigma_x: float = 1.5,
     mouse_sigma_y: float = 1.0,
+    loss_scale: Optional[float] = None,
 ) -> Tuple[torch.Tensor, Dict[str, float]]:
     keys_out, clicks_out, mouse_x_out, mouse_y_out, value_out = outputs
 
@@ -194,8 +195,11 @@ def compute_custom_loss(
     total_loss = loss1a + loss1b + loss1c + loss1d + loss2a + loss2b + loss3 + loss4  # + loss_crit
 
     # Apply loss scaling if specified (helps with training stability)
-    if hasattr(args, 'loss_scale') and args.loss_scale != 1.0:
-        total_loss = total_loss * args.loss_scale
+    if loss_scale is None:
+        # backward-compatible default when called from modules that don't pass args
+        loss_scale = 1.0
+    if loss_scale != 1.0:
+        total_loss = total_loss * float(loss_scale)
     parts = {
         'loss_keys_wasd': float(loss1a.detach().cpu().item()),
         'loss_keys_space': float(loss1b.detach().cpu().item()),
@@ -589,3 +593,7 @@ def parse_args() -> argparse.Namespace:
 if __name__ == '__main__':
     args = parse_args()
     train(args)
+
+'''
+python3 train.py --kd 
+  '''

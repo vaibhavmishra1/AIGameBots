@@ -411,7 +411,7 @@ def create_data_loaders(
 
 
     partition_full = {
-        'train_full': data_list_full[:int(len(data_list_full) * 95)],
+        'train_full': data_list_full[:int(len(data_list_full) * 0.95)],
         'validation_full': data_list_full[int(len(data_list_full) * 0.95):]
     }
     training_loader_full = CSGODataLoader(

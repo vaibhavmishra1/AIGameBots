@@ -377,8 +377,8 @@ if __name__ == "__main__":
     # Quick shape test
     torch.manual_seed(0)
     model = create_vivit_model(aux_input_on=True)
-    b, t, h, w, c = 1, input_shape[0], input_shape[1], input_shape[2], input_shape[3]
-    x = torch.randn(b, t, h, w, c)
+    b, t, c, h, w = 1, input_shape[0], 3, 224, 224
+    x = torch.randn(b, t, c, h, w)
 
     # Aux inputs: previous actions per timestep
     action_dim = n_keys + n_clicks + n_mouse_x + n_mouse_y
