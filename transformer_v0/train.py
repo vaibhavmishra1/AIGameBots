@@ -22,6 +22,7 @@ from distill_losses import (
     kl_divergence_probs as kd_kl_probs,
     mse as kd_mse,
     cosine_loss as kd_cosine,
+    rkd_distance as kd_rkd,
     warmup_factor,
 )  # noqa: E402
 
@@ -454,9 +455,18 @@ def train(args: argparse.Namespace) -> None:
                     s_frame_aligned = model.proj_s2t_frame(s_feats['frame_seq'])
                     s_temp_aligned = model.proj_s2t_temp(s_feats['temporal_out'])
                     loss_kd_feat = kd_cosine(s_frame_aligned, t_feats['frame_seq']) + kd_cosine(s_temp_aligned, t_feats['temporal_out'])
+                    # Relational KD over token geometry (pairwise distances among temporal tokens)
+                    loss_kd_rel = kd_rkd(s_frame_aligned, t_feats['frame_seq']) + kd_rkd(s_temp_aligned, t_feats['temporal_out'])
                     # Warmup
                     kd_warm = warmup_factor(epoch, args.kd_warmup_epochs)
-                    loss = loss_sup + kd_warm * (args.alpha_kd * loss_kd_resp + args.beta_kd * loss_kd_feat)
+                    if args.distill_method == 'rkd':
+                        loss = loss_sup + kd_warm * (
+                            args.alpha_kd * loss_kd_resp
+                            + args.beta_kd * loss_kd_feat
+                            + args.gamma_kd_rkd * loss_kd_rel
+                        )
+                    else:
+                        loss = loss_sup + kd_warm * (args.alpha_kd * loss_kd_resp + args.beta_kd * loss_kd_feat)
                     outputs = (s_keys, s_clicks, s_mx, s_my, s_val)
                 else:
                     outputs = model(batch_x, aux_input=(batch_aux if args.use_prev_actions else None))
@@ -485,8 +495,10 @@ def train(args: argparse.Namespace) -> None:
                             f"| Lclk_acc {metrics['Lclk_acc']:.3f} m_x_acc {metrics['m_x_acc']:.3f} "
                             f"m_y_acc {metrics['m_y_acc']:.3f} wasd_acc {metrics['wasd_acc']:.3f} "
                             f"| KD_resp {loss_kd_resp.item():.3f} (keys {loss_kd_keys.item():.3f} clk {loss_kd_clicks.item():.3f} "
-                            f"mx {loss_kd_mx.item():.3f} my {loss_kd_my.item():.3f}) KD_feat {loss_kd_feat.item():.3f} "
-                            f"kw {kd_warm:.2f} a {args.alpha_kd:.2f} b {args.beta_kd:.2f} T {args.temp_kd:.1f}"
+                                    f"mx {loss_kd_mx.item():.3f} my {loss_kd_my.item():.3f}) KD_feat {loss_kd_feat.item():.3f} "
+                                    f"KD_rel {loss_kd_rel.item():.3f} kw {kd_warm:.2f} a {args.alpha_kd:.2f} "
+                                    f"b {args.beta_kd:.2f} g {getattr(args, 'gamma_kd_rkd', 0.0):.2f} "
+                                    f"T {args.temp_kd:.1f} meth {getattr(args, 'distill_method', 'baseline')}"
                         )
                     except Exception:
                         msg = (
@@ -569,6 +581,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--beta_kd', type=float, default=0.05, help="Weight for feature KD loss")
     parser.add_argument('--temp_kd', type=float, default=4.0, help="Temperature for KL distillation")
     parser.add_argument('--kd_warmup_epochs', type=int, default=5, help="Warmup epochs for KD blending")
+    parser.add_argument('--distill_method', type=str, default='rkd', choices=['baseline', 'rkd'], help="Distillation method")
+    parser.add_argument('--gamma_kd_rkd', type=float, default=0.5, help="Weight for relational KD (token geometry)")
     parser.add_argument('--ema', action='store_true', help="Enable EMA on student (optional, not required)")
     return parser.parse_args()
 

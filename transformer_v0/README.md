@@ -64,16 +64,27 @@ model.set_stateful(True)
 
 ## Knowledge Distillation (Teacher → Student)
 - Teacher checkpoint path (default): `/root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt`
-- Run KD with a compact student:
+- Run KD with a compact student (baseline KD):
 ```bash
 cd transformer_v0
 python3 train.py --kd --student_model deit_tiny --teacher_ckpt /root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt --lr 5e-5  --use_prev_actions
 ```
-- KD hyperparameters:
-  - `--alpha_kd` (resp KD weight, default 1.0)
-  - `--beta_kd` (feature KD weight, default 0.5)
-  - `--temp_kd` (KL temperature, default 2.0)
-  - `--kd_warmup_epochs` (default 2)
+- New: Relational Token Distillation (RTD)
+  - Preserves the temporal token geometry by matching teacher and student pairwise token distance matrices (RKD), on top of logits KD and feature cosine alignment.
+  - Use:
+```bash
+cd transformer_v0
+python3 train.py --kd --student_model deit_tiny \
+  --teacher_ckpt /root/AIGameBots/transformer_v0/checkpoints/vivit_vitb16_best_vit_teacher_2.pt \
+  --lr 5e-5 --use_prev_actions \
+  --distill_method rkd --alpha_kd 0.1 --beta_kd 0.05 --gamma_kd_rkd 0.5 --temp_kd 4.0
+```
+- KD hyperparameters (defaults in code):
+  - `--alpha_kd` (response KD, default 0.1)
+  - `--beta_kd` (feature cosine KD, default 0.05)
+  - `--gamma_kd_rkd` (relational KD weight, default 0.5)
+  - `--temp_kd` (KL temperature, default 4.0)
+  - `--kd_warmup_epochs` (default 5)
 - Outputs:
   - Last: `checkpoints/student_last_kd.pt`
   - Best: `checkpoints/student_best_kd.pt`

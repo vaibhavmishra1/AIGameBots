@@ -68,3 +68,37 @@ def warmup_factor(epoch: int, warmup_epochs: int) -> float:
     return float(max(0, min(epoch, warmup_epochs)) / max(1, warmup_epochs))
 
 
+def rkd_distance(
+    student_tokens: torch.Tensor,
+    teacher_tokens: torch.Tensor,
+    eps: float = 1e-6
+) -> torch.Tensor:
+    """
+    Relational Knowledge Distillation (distance) on token sequences.
+    Preserves pairwise geometry among tokens by matching normalized
+    pairwise distance matrices (per-sample).
+
+    Args:
+        student_tokens: (B, N, D_s) student token embeddings
+        teacher_tokens: (B, N, D_t) teacher token embeddings
+        eps: numerical stability constant
+
+    Returns:
+        Scalar loss (Smooth L1 between normalized pairwise distances)
+    """
+    if student_tokens.dim() != 3 or teacher_tokens.dim() != 3:
+        raise ValueError("rkd_distance expects (B, N, D) tensors for both student and teacher")
+    if student_tokens.size(0) != teacher_tokens.size(0) or student_tokens.size(1) != teacher_tokens.size(1):
+        raise ValueError("Batch size and token count (B, N) must match between student and teacher")
+
+    # Compute batched pairwise Euclidean distances across tokens: (B, N, N)
+    with torch.no_grad():
+        # Teacher distances (stopgrad by design)
+        d_t = torch.cdist(teacher_tokens, teacher_tokens, p=2)  # (B, N, N)
+        d_t = d_t / (d_t.mean(dim=(1, 2), keepdim=True) + eps)
+    d_s = torch.cdist(student_tokens, student_tokens, p=2)  # (B, N, N)
+    d_s = d_s / (d_s.mean(dim=(1, 2), keepdim=True) + eps)
+
+    # Smooth L1 between full matrices (diagonals are zero and match)
+    return F.smooth_l1_loss(d_s, d_t, reduction='mean')
+
